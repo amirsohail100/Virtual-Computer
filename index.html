@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windows 11 Web (Educational Prototype)</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="screen">
+  <!-- Lock screen -->
+  <div id="lock">
+    <div class="lock-time" id="lockTime"></div>
+    <div class="lock-date" id="lockDate"></div>
+    <div class="lock-hint">Click or press any key to unlock</div>
+  </div>
+
+  <!-- Desktop -->
+  <div id="desktop"><div id="icons"></div></div>
+  <div id="windows"></div>
+
+  <!-- Start menu -->
+  <div id="start" class="flyout hidden">
+    <input id="startSearch" type="text" placeholder="Type here to search apps">
+    <div class="sec-title">Pinned</div>
+    <div id="pinnedGrid" class="grid"></div>
+    <div class="sec-title">Recommended</div>
+    <div id="recList" class="rec"></div>
+    <div class="start-foot">
+      <div class="user"><span class="avatar">👤</span> Student</div>
+      <div class="power">
+        <button id="btnLock" title="Lock">🔒</button>
+        <button id="btnRestart" title="Restart">🔄</button>
+        <button id="btnShutdown" title="Shut down">⏻</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick settings -->
+  <div id="quick" class="flyout hidden">
+    <div class="q-tiles">
+      <button class="q-tile on" data-q="wifi">📶<span>Wi-Fi</span></button>
+      <button class="q-tile" data-q="bt">🔵<span>Bluetooth</span></button>
+      <button class="q-tile" data-q="dark">🌙<span>Dark mode</span></button>
+      <button class="q-tile" data-q="night">🌅<span>Night light</span></button>
+    </div>
+    <label class="q-row">☀️ <input type="range" id="brightness" min="30" max="100" value="100"></label>
+    <label class="q-row">🔊 <input type="range" id="volume" min="0" max="100" value="60"></label>
+  </div>
+
+  <!-- Calendar flyout -->
+  <div id="calendar" class="flyout hidden"></div>
+
+  <!-- Taskbar -->
+  <div id="taskbar">
+    <div class="tb-center">
+      <button id="startBtn" class="tb-btn" title="Start">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path fill="#0a84ff" d="M2 4.5 11 3.3V11H2zM12 3.1 22 1.7V11H12zM2 12h9v7.7L2 18.5zM12 12h10v10.3L12 20.9z"/></svg>
+      </button>
+      <button id="searchBtn" class="tb-btn" title="Search">🔍</button>
+      <div id="taskApps"></div>
+    </div>
+    <div class="tb-right">
+      <button id="trayQuick" class="tray">📶 🔊 🔋</button>
+      <button id="trayClock" class="tray clock"><span id="tbTime"></span><span id="tbDate"></span></button>
+    </div>
+  </div>
+
+  <div id="ctx" class="hidden"></div>
+  <div id="dim"></div>
+  <div id="night"></div>
+  <div id="off" class="hidden"><button id="powerOn">⏻ Power on</button></div>
+</div>
+
+<script src="js/apps.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
