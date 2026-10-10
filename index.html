@@ -22,18 +22,19 @@
 
   <!-- Start menu -->
   <div id="start" class="flyout hidden">
-    <input id="startSearch" type="text" placeholder="Type here to search apps">
-    <div class="sec-title">Pinned</div>
-    <div id="pinnedGrid" class="grid"></div>
-    <div class="sec-title">Recommended</div>
-    <div id="recList" class="rec"></div>
+    <div class="st-search"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="startSearch" type="text" placeholder="Search for apps, settings, and documents" autocomplete="off"></div>
+    <div id="stMain">
+      <div class="st-row"><b>Pinned</b><button class="st-btn" id="allAppsBtn">All apps <span>›</span></button></div>
+      <div id="pinnedGrid" class="grid"></div>
+      <div class="st-row"><b>Recommended</b><button class="st-btn" id="moreRec">More <span>›</span></button></div>
+      <div id="recList" class="rec"></div>
+    </div>
+    <div id="stAll" class="hidden"></div>
+    <div id="stFind" class="hidden"></div>
     <div class="start-foot">
       <div class="user"><span class="avatar">👤</span> Student</div>
-      <div class="power">
-        <button id="btnLock" title="Lock">🔒</button>
-        <button id="btnRestart" title="Restart">🔄</button>
-        <button id="btnShutdown" title="Shut down">⏻</button>
-      </div>
+      <button id="powerBtn" class="pbtn" title="Power">⏻</button>
+      <div id="powerMenu" class="hidden"><div data-p="lock">🔒 Lock</div><div data-p="restart">🔄 Restart</div><div data-p="shutdown">⏻ Shut down</div></div>
     </div>
   </div>
 
@@ -79,6 +80,8 @@
 </div>
 
 <script src="js/apps.js"></script>
+<script src="js/explorer.js"></script>
+<script src="js/apps-extra.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
