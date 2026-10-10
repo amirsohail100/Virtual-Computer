@@ -1,66 +1,62 @@
-# Windows 11 Web (Educational Prototype)
+# Virtual Computer
 
-Browser me chalne wala Windows 11 jaisa desktop — sirf **HTML, CSS aur JavaScript**. Koi install, build ya server zaroori nahi.
+Browser ke andar poora operating system chalane wala project — sirf **HTML, CSS aur JavaScript**. Koi install, build ya server zaroori nahi.
 
-> Ye project sirf **education aur learning** ke liye hai. Microsoft se koi sambandh nahi hai. Details `LICENSE` me.
+Home page pe user apna OS chunta hai, aur wahi khul jata hai.
+
+| OS | Status |
+|---|---|
+| Windows 11 | ✅ Available |
+| macOS | 🕒 Coming soon |
+| Android | 🕒 Coming soon |
+| iPhone (iOS) | 🕒 Coming soon |
+
+> Ye project sirf **education aur learning** ke liye hai. Microsoft, Apple ya Google se koi sambandh nahi hai. Details `LICENSE` me.
 
 ## Kaise chalayein
 1. Zip extract karo.
-2. `index.html` ko double-click karke browser me kholo.
-3. (Optional) local server: `python -m http.server 8000` → http://localhost:8000
-4. Online dalna ho to poora folder GitHub Pages / Netlify / Vercel pe upload karo. Jo bhi link kholega use ye desktop dikhega.
+2. Root ke `index.html` ko browser me kholo (home page).
+3. **Windows 11** card pe click karo.
+4. Wapas aane ke liye Windows me Start menu → power button → **Switch OS**.
 
-## Version history
-**v0.3**
-- **Naya wallpaper:** layered "silk" Bloom (dark + light) aur Glow — Windows 11 ke default wallpapers jaisa look
-- **Apna wallpaper lagao:** Settings > Personalization > Browse photos se PC se image upload karo (Fill / Fit / Stretch / Tile / Center). Image desktop pe drag-drop karke bhi wallpaper ban jata hai. Custom wallpapers delete bhi kar sakte ho
-- **File Explorer redesign:** Windows 11 toolbar (New, Cut, Copy, Paste, Rename, Share, Delete, Sort, View), back/forward/up, breadcrumb address bar, search box, sidebar tree, rangeen Desktop/Documents/Downloads/Music/Pictures/Videos folders, C: aur D: drives with usage bar ("25.6 GB free of 99.8 GB"), status bar. Real kaam: folder/file banana, copy-cut-paste, rename, delete (Recycle Bin me jata hai)
-- **Start menu redesign:** wide layout, "Search for apps, settings, and documents", Pinned grid (6 columns) + "All apps" A–Z list, Recommended (recent files), user + power menu (Lock / Restart / Shut down). Search apps aur files dono dhoondhta hai
-- **Naye apps:** Mail, Calendar (events), Microsoft Store (demo), Photos, Clock (world clock, stopwatch, timer), Camera, Weather (demo), Recycle Bin
-- **Taskbar:** by default Explorer, Edge, Store, Mail, Notepad, Settings pinned. Right-click karke Pin / Unpin kar sakte ho (Start menu ke app pe bhi)
-- Window buttons (minimize / maximize / close) ab SVG icons hain
-
-**v0.2**
-- Naya Windows 11 "Bloom" style wallpaper (dark + light), lock screen pe bhi wahi wallpaper
-- Taskbar me asli Windows 11 Start logo (4 squares)
-- Taskbar saaf: sirf Start button + jo apps user ne khole hain. Search icon aur extra pinned apps hata diye
-- Tray panels (Windows 11 jaise):
-  - **^ (hidden icons)** — chhote icons ka popup
-  - **ENG IN** — Keyboard layout selector
-  - **Wi-Fi / Volume** — Quick settings: Wi-Fi (network list ke saath), Airplane mode, Night light, Mobile hotspot, Focus assist, Accessibility, volume slider, edit aur settings buttons
-  - **Date / Time** — Notifications (Clear all, dismiss, Focus assist) + Calendar (mahina badalna, collapse)
-- Notification system: Notepad save, Wi-Fi connect jaise events pe toast + notification center + badge count
-- Right-click menus: desktop aur taskbar pe Windows 11 style menu
-- Default dark theme
-
-**v0.1** — pehla prototype: lock screen, window manager, Start menu, 8 apps.
-
-## Features
-- Lock screen, desktop icons, wallpapers (4), dark / light mode, accent colour
-- Window manager: drag, resize, minimize, maximize (titlebar double-click), close
-- Apps: File Explorer (virtual files), Notepad (Ctrl+S), Calculator, Settings, Edge-style browser, Paint, Terminal, Task Manager
-- Data (files, settings) browser ke `localStorage` me save hota hai
+Local server (optional): `python -m http.server 8000` → http://localhost:8000
+Online dalna ho to poora folder GitHub Pages / Netlify / Vercel pe upload karo.
 
 ## Folder structure
 ```
-index.html          page layout (lock, desktop, start, tray panels, taskbar)
-css/style.css       sabhi styles (themes, windows, flyouts, apps)
-js/apps.js          wallpapers (built-in + custom), virtual file system (FS), core apps (APPS)
-js/explorer.js      File Explorer (Windows 11 style)
-js/apps-extra.js    Mail, Calendar, Store, Photos, Clock, Camera, Weather, Recycle Bin
-js/main.js          OS core: window manager, taskbar, Start, tray panels, notifications, menus
-assets/             bloom-dark.svg, bloom-light.svg, glow.svg (wallpapers)
-LICENSE             education / learning use only
+index.html              home page (OS chunne wala)
+css/home.css            home page styles
+js/home.js              OS list (SYSTEMS) + launch logic
+LICENSE                 education / learning use only
+os/
+  windows/              Windows 11 (ready)
+    index.html
+    css/style.css
+    js/main.js          OS core: windows, taskbar, Start, tray panels
+    js/apps.js          wallpapers, file system, core apps
+    js/explorer.js      File Explorer
+    js/apps-extra.js    Mail, Calendar, Store, Photos, Clock, Camera, Weather, Recycle Bin
+    assets/             wallpapers (bloom-dark, bloom-light, glow)
+  mac/ android/ iphone/ (aage banenge)
 ```
 
-## Customize kaise karein
-- **Naya app:** `js/apps.js` me `APPS` object me ek entry add karo (`name, icon, w, h, render`). Start menu me apne aap aa jayega.
-- **Taskbar pe app pin karna:** taskbar ya Start menu me app pe right-click → Pin to taskbar. (Default list `js/main.js` me `pinned` me hai.)
-- **Naya built-in wallpaper:** `BUILTIN_WALLS` (`js/apps.js`) me add karo.
-- **Notification bhejna:** `OS.notify('App name', 'Title', 'Message')`.
+## Naya OS kaise add karein
+1. `os/<naam>/` folder banao aur usme `index.html` rakho (har OS apne folder me poora self-contained rahe).
+2. `js/home.js` ke `SYSTEMS` me us OS ki entry me `ready: true` aur `path: 'os/<naam>/index.html'` likho.
+3. Us OS me ek "Switch OS" button do jo `../../index.html` pe le jaye (Windows me power menu me hai).
 
-## Aage ke features (ideas)
-Window snap layouts, Widgets panel, Task View + virtual desktops, real file upload/download in Explorer, multi-select, Microsoft Store jaisa app installer, multi-user login, taskbar app previews, drag-drop desktop icons.
+## Windows 11 — features
+- Lock screen, desktop icons, 4 wallpapers + apna wallpaper upload (drag-drop bhi), dark/light mode, accent colour
+- Taskbar (pinned + khule apps, right-click Pin/Unpin), Start menu (Pinned, All apps, Recommended, search), tray panels (hidden icons, keyboard layout, quick settings, notifications + calendar)
+- Window manager: drag, resize, minimize, maximize, close
+- Apps: File Explorer, Notepad, Calculator, Settings, Edge-style browser, Paint, Terminal, Task Manager, Mail, Calendar, Store (demo), Photos, Clock, Camera, Weather (demo), Recycle Bin
+- Files aur settings browser ke `localStorage` me save hote hain
+
+## Version history
+**v0.4** — Project ka naam Virtual Computer. Home page (Windows / macOS / Android / iPhone cards), Windows `os/windows/` me shift, "Switch OS" button.
+**v0.3** — Win11 Start menu aur File Explorer redesign, custom wallpaper upload, 8 naye apps, default pinned taskbar apps.
+**v0.2** — Bloom wallpaper, Win11 Start logo, tray panels, notifications + calendar, right-click menus.
+**v0.1** — Pehla Windows 11 prototype.
 
 ## License
 Sirf education aur learning ke liye. Details `LICENSE` file me.
