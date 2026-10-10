@@ -20,6 +20,8 @@ const ICON = {
   access: svg('<circle cx="12" cy="4.5" r="1.8"/><path d="M5 8.5l7 1.5 7-1.5M12 10v5l-3.5 6M12 15l3.5 6"/>', 20),
   shield: svg('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>', 16)
 };
+const WI = { min: '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5.5h10" stroke="currentColor" fill="none"/></svg>', max: '<svg width="10" height="10" viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" rx="1.2" stroke="currentColor" fill="none"/></svg>',
+  rest: '<svg width="10" height="10" viewBox="0 0 10 10"><rect x=".5" y="2.5" width="7" height="7" rx="1" stroke="currentColor" fill="none"/><path d="M2.5 2.5V1.2c0-.4.3-.7.7-.7h5.6c.4 0 .7.3.7.7v5.6c0 .4-.3.7-.7.7H7.5" stroke="currentColor" fill="none"/></svg>', cls: '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M.5.5l9 9M9.5.5l-9 9" stroke="currentColor" fill="none"/></svg>' };
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const pad = n => String(n).padStart(2, '0');
@@ -28,18 +30,20 @@ const OS = (() => {
   const wins = new Map();
   let z = 10, counter = 0, focused = null;
   /* Taskbar me sirf Start + jo apps khule hain wo dikhte hain. Kuch pin karna ho to yahan id likho, e.g. ['explorer'] */
-  const pinned = [];
-  const desktopIcons = [['🗑️', 'Recycle Bin', null], ['🖥️', 'This PC', 'explorer', { path: [] }], ['📁', 'Documents', 'explorer', null],
+  let pinned = JSON.parse(localStorage.getItem('w11_pinned') || 'null') || ['explorer', 'edge', 'store', 'mail', 'notepad', 'settings'];
+  const savePinned = () => localStorage.setItem('w11_pinned', JSON.stringify(pinned));
+  const START_PINNED = ['edge', 'mail', 'calendar', 'store', 'photos', 'camera', 'settings', 'paint', 'clock', 'weather', 'calc', 'terminal', 'explorer', 'notepad', 'recycle', 'taskmgr'];
+  const desktopIcons = [['♻️', 'Recycle Bin', 'recycle'], ['🖥️', 'This PC', 'explorer', { path: [] }], ['📁', 'Documents', 'explorer', { path: [...HOME, 'Documents'] }],
                         ['🌐', 'Microsoft Edge', 'edge'], ['📝', 'Notepad', 'notepad'], ['⬛', 'Terminal', 'terminal']];
 
   /* ---------- Persistent settings ---------- */
-  let settings = { dark: true, wall: '1', accent: '#0067c0', brightness: 100 };
+  let settings = { dark: true, wall: '1', fit: 'fill', accent: '#0067c0', brightness: 100 };
   try { settings = { ...settings, ...JSON.parse(localStorage.getItem('w11_settings_v2')) }; } catch (e) {}
   function apply() {
     document.body.classList.toggle('dark', settings.dark);
     document.documentElement.style.setProperty('--accent', settings.accent);
-    $('#desktop').style.background = WALLS[settings.wall];
-    $('#lock').style.background = WALLS[settings.wall];
+    applyWall($('#desktop'), settings.wall, settings.fit);
+    applyWall($('#lock'), settings.wall, settings.fit);
     $('#dim').style.background = `rgba(0,0,0,${(100 - settings.brightness) / 140})`;
   }
   function set(patch) { Object.assign(settings, patch); localStorage.setItem('w11_settings_v2', JSON.stringify(settings)); apply(); }
@@ -65,7 +69,7 @@ const OS = (() => {
     el.style.height = Math.min(app.h || 420, innerHeight - 70) + 'px';
     el.style.left = Math.max(0, Math.min(60 + (n % 8) * 28, innerWidth - 300)) + 'px';
     el.style.top = (24 + (n % 8) * 28) + 'px';
-    el.innerHTML = `<div class="tb"><span class="ti">${app.icon}</span><span class="tt">${app.name}</span><div class="tc"><button class="mn" title="Minimize">—</button><button class="mx" title="Maximize">▢</button><button class="cl" title="Close">✕</button></div></div><div class="wb"></div><div class="rz"></div>`;
+    el.innerHTML = `<div class="tb"><span class="ti">${app.icon}</span><span class="tt">${app.name}</span><div class="tc"><button class="mn" title="Minimize">${WI.min}</button><button class="mx" title="Maximize">${WI.max}</button><button class="cl" title="Close">${WI.cls}</button></div></div><div class="wb"></div><div class="rz"></div>`;
     w.setTitle = t => { w.title = t; $('.tt', el).textContent = t; renderTaskbar(); };
     $('#windows').appendChild(el);
     wins.set(w.id, w);
@@ -90,7 +94,7 @@ const OS = (() => {
     const next = [...wins.values()].filter(o => !o.min).sort((a, b) => b.el.style.zIndex - a.el.style.zIndex)[0];
     focused = next ? next.id : null; wins.forEach(o => o.el.classList.toggle('active', o === next)); renderTaskbar();
   }
-  function toggleMax(w) { w.max = !w.max; w.el.classList.toggle('max', w.max); $('.mx', w.el).textContent = w.max ? '❐' : '▢'; }
+  function toggleMax(w) { w.max = !w.max; w.el.classList.toggle('max', w.max); $('.mx', w.el).innerHTML = w.max ? WI.rest : WI.max; }
   function close(id) {
     const w = wins.get(id); if (!w) return;
     if (w.onclose) w.onclose();
@@ -146,26 +150,46 @@ const OS = (() => {
   document.addEventListener('pointerdown', e => { if (!e.target.closest('.flyout,#notifCenter,#taskbar,#ctx')) closeFlyouts(); });
 
   /* ---------- Start menu ---------- */
+  const ago = t => { const mn = Math.max(1, Math.round((Date.now() - t) / 60000)); return mn < 60 ? mn + 'm ago' : mn < 1440 ? Math.round(mn / 60) + 'h ago' : Math.round(mn / 1440) + 'd ago'; };
+  const appTile = id => `<button class="gitem" data-app="${id}"><span class="em">${APPS[id].icon}</span>${APPS[id].name}</button>`;
   function buildStart() {
-    $('#pinnedGrid').innerHTML = Object.entries(APPS).map(([id, a]) => `<button class="gitem" data-app="${id}"><span class="em">${a.icon}</span>${a.name}</button>`).join('');
-    $('#recList').innerHTML = ['readme.txt', 'todo.txt'].map(n => `<button class="recitem" data-file="${n}"><span class="em">📄</span>${n}</button>`).join('');
+    $('#pinnedGrid').innerHTML = START_PINNED.filter(id => APPS[id]).map(appTile).join('');
+    const rec = RECENT.list().slice(0, 4);
+    $('#recList').innerHTML = rec.map((r, i) => `<button class="recitem" data-rec="${i}"><span class="em">${FX.fileSvg(r.name, 30)}</span><div>${r.name}<small>${ago(r.t)}</small></div></button>`).join('');
   }
+  function showStart(view) { $('#stMain').classList.toggle('hidden', view !== 'main'); $('#stAll').classList.toggle('hidden', view !== 'all'); $('#stFind').classList.toggle('hidden', view !== 'find'); $('#powerMenu').classList.add('hidden'); }
+  function buildAll() {
+    const ids = Object.keys(APPS).sort((a, b) => APPS[a].name.localeCompare(APPS[b].name));
+    let last = '';
+    $('#stAll').innerHTML = `<div class="st-row"><b>All apps</b><button class="st-btn" id="allBack">‹ Back</button></div><div class="all-list">` +
+      ids.map(id => { const L = APPS[id].name[0].toUpperCase(), hd = L !== last ? `<div class="all-l">${L}</div>` : ''; last = L; return hd + `<button class="all-it" data-app="${id}"><span>${APPS[id].icon}</span>${APPS[id].name}</button>`; }).join('') + '</div>';
+  }
+  function openFile(parent, name) { const n = FS.get(parent) && FS.get(parent)[name]; if (typeof n === 'string') { RECENT.add(name, parent); open('notepad', { name, path: parent, content: n }); } else if (n) open('explorer', { path: [...parent, name] }); }
   $('#start').addEventListener('click', e => {
-    const g = e.target.closest('[data-app]'), f = e.target.closest('[data-file]');
+    const g = e.target.closest('[data-app]'), r = e.target.closest('[data-rec]'), f = e.target.closest('[data-file]'), pm = e.target.closest('[data-p]');
+    if (e.target.closest('#allAppsBtn')) { buildAll(); return showStart('all'); }
+    if (e.target.closest('#allBack')) return showStart('main');
+    if (e.target.closest('#moreRec')) { closeFlyouts(); return open('explorer', { path: [...HOME, 'Documents'] }); }
+    if (e.target.closest('#powerBtn')) return $('#powerMenu').classList.toggle('hidden');
+    if (pm) { const a = pm.dataset.p; closeFlyouts(); if (a === 'lock') $('#lock').classList.remove('up'); if (a === 'restart') location.reload(); if (a === 'shutdown') $('#off').classList.remove('hidden'); return; }
     if (g) { open(g.dataset.app); closeFlyouts(); }
-    if (f) { const p = [...HOME, 'Documents'], n = f.dataset.file; open('notepad', { name: n, path: p, content: FS.get(p)[n] }); closeFlyouts(); }
+    if (r) { const x = RECENT.list()[+r.dataset.rec]; openFile(x.path, x.name); closeFlyouts(); }
+    if (f) { openFile(JSON.parse(f.dataset.path), f.dataset.file); closeFlyouts(); }
   });
   $('#startSearch').addEventListener('input', e => {
-    const q = e.target.value.toLowerCase();
-    $$('#pinnedGrid .gitem').forEach(b => b.style.display = b.textContent.toLowerCase().includes(q) ? '' : 'none');
+    const q = e.target.value.trim().toLowerCase();
+    if (!q) return showStart('main');
+    const apps = Object.keys(APPS).filter(id => APPS[id].name.toLowerCase().includes(q));
+    const files = FS.find(q).filter(x => !x.isDir).slice(0, 6);
+    $('#stFind').innerHTML = `<div class="st-row"><b>Best match</b></div><div class="find-list">` + apps.map(id => `<button class="all-it" data-app="${id}"><span>${APPS[id].icon}</span>${APPS[id].name}<small>App</small></button>`).join('') +
+      files.map(x => `<button class="all-it" data-file="${x.name}" data-path='${JSON.stringify(x.path)}'><span>📄</span>${x.name}<small>File</small></button>`).join('') + (apps.length + files.length ? '' : '<div class="fx-empty">No results found.</div>') + '</div>';
+    showStart('find');
   });
   $('#startSearch').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { const v = $$('#pinnedGrid .gitem').find(b => b.style.display !== 'none'); if (v) { open(v.dataset.app); closeFlyouts(); } }
+    if (e.key === 'Enter') { const v = $('#stFind [data-app]'); if (v) { open(v.dataset.app); closeFlyouts(); } }
   });
-  $('#startBtn').onclick = e => { e.stopPropagation(); if (toggle('#start')) { const s = $('#startSearch'); s.value = ''; s.dispatchEvent(new Event('input')); s.focus(); } };
-  $('#btnLock').onclick = () => { closeFlyouts(); $('#lock').classList.remove('up'); };
-  $('#btnRestart').onclick = () => location.reload();
-  $('#btnShutdown').onclick = () => { closeFlyouts(); $('#off').classList.remove('hidden'); };
+  $('#startBtn').onclick = e => { e.stopPropagation(); if (toggle('#start')) { const s = $('#startSearch'); s.value = ''; buildStart(); showStart('main'); s.focus(); } };
+
   $('#powerOn').onclick = () => { $('#off').classList.add('hidden'); $('#lock').classList.remove('up'); };
 
   /* ---------- Tray: ^ hidden icons ---------- */
@@ -309,6 +333,13 @@ const OS = (() => {
   });
   $('#desktop').addEventListener('pointerdown', e => { if (e.target.id === 'desktop' || e.target.id === 'icons') $$('.dicon').forEach(x => x.classList.remove('sel')); });
 
+  /* drag & drop an image from your PC onto the desktop -> set as wallpaper */
+  $('#screen').addEventListener('dragover', e => e.preventDefault());
+  $('#screen').addEventListener('drop', e => {
+    e.preventDefault(); const f = e.dataTransfer.files[0]; if (!f) return;
+    addCustomWall(f, (id, err) => id ? (set({ wall: id }), notify('Personalization', 'Wallpaper changed', f.name)) : notify('Personalization', 'Could not set wallpaper', err));
+  });
+
   /* ---------- Right-click menus ---------- */
   function showCtx(x, y, items) {
     const c = $('#ctx');
@@ -319,10 +350,14 @@ const OS = (() => {
   }
   document.addEventListener('contextmenu', e => {
     e.preventDefault(); closeFlyouts();
+    const gi = e.target.closest('#start .gitem, #start .all-it');
+    if (gi) { const id = gi.dataset.app, pin = pinned.includes(id); return showCtx(e.clientX, e.clientY, [['▶️', 'Open', 'open:' + id], [pin ? '📌' : '📍', pin ? 'Unpin from taskbar' : 'Pin to taskbar', (pin ? 'unpin:' : 'pin:') + id]]); }
     if (e.target.closest('.win,.flyout,#notifCenter,#start')) return;
     if (e.target.closest('#taskbar')) {
       const app = e.target.closest('.tapp');
-      return showCtx(e.clientX, e.clientY - 90, app ? [['✕', 'Close all windows of this app', 'closeapp:' + app.dataset.app]] : [['📊', 'Task Manager', 'tm'], ['⚙️', 'Taskbar settings', 'pers']]);
+      if (app) { const id = app.dataset.app, pin = pinned.includes(id), run = [...wins.values()].some(w => w.app === id);
+        return showCtx(e.clientX, Math.max(8, e.clientY - (run ? 140 : 100)), [['▶️', run ? 'Open new window' : 'Open', 'open:' + id], [pin ? '📌' : '📍', pin ? 'Unpin from taskbar' : 'Pin to taskbar', (pin ? 'unpin:' : 'pin:') + id]].concat(run ? [['✕', 'Close window', 'closeapp:' + id]] : [])); }
+      return showCtx(e.clientX, e.clientY - 90, [['📊', 'Task Manager', 'tm'], ['⚙️', 'Taskbar settings', 'pers']]);
     }
     showCtx(e.clientX, e.clientY, [['🔄', 'Refresh', 'refresh'], ['🖼️', 'Next wallpaper', 'wall'], ['🌓', 'Switch dark / light mode', 'dark'], '-',
       ['⬛', 'Open in Terminal', 'term'], ['🖥️', 'Display settings', 'pers'], ['🎨', 'Personalize', 'pers']]);
@@ -331,11 +366,14 @@ const OS = (() => {
     const a = (e.target.closest('[data-c]') || {}).dataset; if (!a) return;
     const c = a.c;
     if (c === 'refresh') { $('#icons').style.opacity = 0; setTimeout(() => $('#icons').style.opacity = 1, 140); }
-    if (c === 'wall') set({ wall: String(settings.wall % 4 + 1) });
+    if (c === 'wall') { const ids = wallIds(); set({ wall: ids[(ids.indexOf(settings.wall) + 1) % ids.length] }); }
     if (c === 'dark') set({ dark: !settings.dark });
     if (c === 'term') open('terminal');
     if (c === 'pers') open('settings');
     if (c === 'tm') open('taskmgr');
+    if (c.startsWith('open:')) open(c.slice(5));
+    if (c.startsWith('pin:')) { pinned.push(c.slice(4)); savePinned(); renderTaskbar(); }
+    if (c.startsWith('unpin:')) { pinned = pinned.filter(x => x !== c.slice(6)); savePinned(); renderTaskbar(); }
     if (c.startsWith('closeapp:')) [...wins.values()].filter(w => w.app === c.split(':')[1]).forEach(w => close(w.id));
     closeFlyouts();
   });
@@ -351,7 +389,7 @@ const OS = (() => {
 
   /* ---------- Boot ---------- */
   $$('[data-ico]').forEach(el => el.innerHTML = ICON[el.dataset.ico]);
-  buildDesktop(); buildStart(); renderTaskbar(); renderTray(); renderNotifs(); apply(); tick(); setInterval(tick, 1000);
+  buildDesktop(); buildStart(); showStart('main'); renderTaskbar(); renderTray(); renderNotifs(); apply(); tick(); setInterval(tick, 1000);
 
   return { open, close, notify, list: () => [...wins.values()], get settings() { return settings; }, set };
 })();
