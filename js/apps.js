@@ -2,13 +2,53 @@
    Each app: { name, icon, w, h, single?, render(body, win, arg) }
    Naya app add karna ho to bas APPS me ek entry add karo. */
 
-/* Wallpapers (Settings + desktop dono yahin se lete hain) */
-const WALLS = {
-  1: "url('assets/bloom-dark.svg') center/cover no-repeat #020814",
-  2: "url('assets/bloom-light.svg') center/cover no-repeat #dfe9ff",
-  3: 'radial-gradient(circle at 70% 30%,#f093fb 0,transparent 45%),linear-gradient(135deg,#2b1055,#7597de)',
-  4: 'radial-gradient(circle at 25% 70%,#5fd38d 0,transparent 45%),linear-gradient(135deg,#0f2027,#2c7744)'
+/* ---------- Wallpapers (built-in + user uploaded) ---------- */
+const BUILTIN_WALLS = {
+  '1': { name: 'Bloom', img: "url('assets/bloom-dark.svg')", bg: '#020814' },
+  '2': { name: 'Bloom (light)', img: "url('assets/bloom-light.svg')", bg: '#dfe9ff' },
+  '3': { name: 'Glow', img: "url('assets/glow.svg')", bg: '#0b0620' },
+  '4': { name: 'Sunrise', img: 'radial-gradient(circle at 60% 35%,#ffd194 0,transparent 40%),linear-gradient(135deg,#ff7e5f,#6a3093)', bg: '#6a3093' }
 };
+let CUSTOM_WALLS = [];
+try { CUSTOM_WALLS = JSON.parse(localStorage.getItem('w11_walls_v1') || '[]'); } catch (e) {}
+const saveCustomWalls = () => { try { localStorage.setItem('w11_walls_v1', JSON.stringify(CUSTOM_WALLS)); return true; } catch (e) { return false; } };
+const wallIds = () => [...Object.keys(BUILTIN_WALLS), ...CUSTOM_WALLS.map(w => w.id)];
+function wallInfo(id) {
+  if (BUILTIN_WALLS[id]) return BUILTIN_WALLS[id];
+  const c = CUSTOM_WALLS.find(w => w.id === id);
+  return c ? { name: c.name, img: 'url("' + c.data + '")', bg: '#000', custom: true } : BUILTIN_WALLS['1'];
+}
+function applyWall(el, id, fit) {
+  const w = wallInfo(id);
+  el.style.backgroundColor = w.bg; el.style.backgroundImage = w.img;
+  const m = { fill: ['cover', 'center', 'no-repeat'], fit: ['contain', 'center', 'no-repeat'], stretch: ['100% 100%', 'center', 'no-repeat'],
+              tile: ['auto', 'top left', 'repeat'], center: ['auto', 'center', 'no-repeat'] }[w.custom ? (fit || 'fill') : 'fill'];
+  el.style.backgroundSize = m[0]; el.style.backgroundPosition = m[1]; el.style.backgroundRepeat = m[2];
+}
+/* PC se image lo -> chhota karo (localStorage limit) -> save. cb(id) ya cb(null, 'error msg') */
+function addCustomWall(file, cb) {
+  if (!file || !/^image\//.test(file.type)) return cb(null, 'Please choose an image file (JPG, PNG, WebP...).');
+  const rd = new FileReader();
+  rd.onerror = () => cb(null, 'Could not read this file.');
+  rd.onload = () => {
+    const img = new Image();
+    img.onerror = () => cb(null, 'This image could not be opened.');
+    img.onload = () => {
+      for (const [maxW, q] of [[1920, .82], [1440, .7], [1024, .6]]) {
+        const sc = Math.min(1, maxW / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        const w = { id: 'c' + Date.now(), name: file.name.replace(/\.[^.]+$/, ''), data: cv.toDataURL('image/jpeg', q) };
+        CUSTOM_WALLS.push(w);
+        if (saveCustomWalls()) return cb(w.id);
+        CUSTOM_WALLS.pop();
+      }
+      cb(null, 'Browser storage is full. Delete an older custom wallpaper and try again.');
+    };
+    img.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+}
 
 const HOME = ['Local Disk (C:)', 'Users', 'Student'];
 
@@ -23,57 +63,37 @@ const FS = (() => {
           'readme.txt': 'Welcome to Windows 11 Web!\nYe ek educational prototype hai.\n\nDouble-click karke files kholo, Notepad me edit karo aur Ctrl+S se save karo.',
           'todo.txt': '1. Start menu improve karna\n2. Real file upload\n3. Window snap layouts'
         },
-        'Downloads': {}, 'Pictures': {}, 'Music': {}
+        'Downloads': {}, 'Pictures': {}, 'Music': {}, 'Videos': {}
       } }
-    }
+    },
+    'Local Disk (D:)': { 'Projects': {}, 'Backup': {} }
   };
-  let root;
-  try { root = JSON.parse(localStorage.getItem('w11_fs')) || def; } catch (e) { root = def; }
-  const save = () => { try { localStorage.setItem('w11_fs', JSON.stringify(root)); } catch (e) {} };
+  let root, bin = [];
+  try { root = JSON.parse(localStorage.getItem('w11_fs2')) || def; } catch (e) { root = def; }
+  try { bin = JSON.parse(localStorage.getItem('w11_bin')) || []; } catch (e) { bin = []; }
+  const save = () => { try { localStorage.setItem('w11_fs2', JSON.stringify(root)); localStorage.setItem('w11_bin', JSON.stringify(bin)); } catch (e) {} };
   const get = (path) => path.reduce((n, k) => (n && typeof n === 'object') ? n[k] : undefined, root);
   const set = (path, name, val) => { const d = get(path); if (d && typeof d === 'object') { d[name] = val; save(); } };
-  return { root: () => root, get, set, save };
+  const del = (path, name) => { const d = get(path); if (d && name in d) { bin.push({ name, path: [...path], val: d[name], t: Date.now() }); delete d[name]; save(); } };
+  const remove = (path, name) => { const d = get(path); if (d) { delete d[name]; save(); } };
+  /* recursive search by name */
+  const find = (q, node = root, path = [], out = []) => {
+    for (const [k, v] of Object.entries(node)) {
+      if (k.toLowerCase().includes(q)) out.push({ name: k, path, isDir: typeof v === 'object' });
+      if (typeof v === 'object' && out.length < 30) find(q, v, [...path, k], out);
+    }
+    return out;
+  };
+  return { root: () => root, bin: () => bin, get, set, del, remove, save, find };
 })();
 
-const APPS = {
+/* recent files (Start menu "Recommended") */
+const RECENT = {
+  list() { try { return JSON.parse(localStorage.getItem('w11_recent')) || [{ name: 'readme.txt', path: [...HOME, 'Documents'], t: Date.now() - 4 * 60000 }, { name: 'todo.txt', path: [...HOME, 'Documents'], t: Date.now() - 52 * 60000 }]; } catch (e) { return []; } },
+  add(name, path) { const l = this.list().filter(r => !(r.name === name && r.path.join('/') === path.join('/'))); l.unshift({ name, path, t: Date.now() }); try { localStorage.setItem('w11_recent', JSON.stringify(l.slice(0, 6))); } catch (e) {} }
+};
 
-/* ---------- File Explorer ---------- */
-explorer: { name: 'File Explorer', icon: '📁', w: 780, h: 470,
-render(body, win, arg) {
-  let path = arg && arg.path ? [...arg.path] : [...HOME, 'Documents'];
-  const back = [];
-  body.innerHTML = `<div class="ex"><div class="ex-bar"><button data-a="back" title="Back">←</button><button data-a="up" title="Up">↑</button><div class="ex-addr"></div></div>
-  <div class="ex-main"><div class="ex-side"></div><div class="ex-list"></div></div><div class="ex-status"></div></div>`;
-  const side = body.querySelector('.ex-side'), list = body.querySelector('.ex-list'),
-        addr = body.querySelector('.ex-addr'), st = body.querySelector('.ex-status');
-  const quick = [['🖥️', 'This PC', []], ['🖼️', 'Desktop', [...HOME, 'Desktop']], ['📄', 'Documents', [...HOME, 'Documents']],
-                 ['⬇️', 'Downloads', [...HOME, 'Downloads']], ['🖼️', 'Pictures', [...HOME, 'Pictures']], ['🎵', 'Music', [...HOME, 'Music']]];
-  side.innerHTML = quick.map((q, i) => `<div data-i="${i}">${q[0]} ${q[1]}</div>`).join('');
-  side.onclick = e => { const d = e.target.closest('[data-i]'); if (d) go(quick[d.dataset.i][2]); };
-  const iconFor = (n, v) => typeof v === 'object' ? (path.length === 0 ? '💽' : '📁') : /\.(png|jpg|jpeg|gif)$/i.test(n) ? '🖼️' : '📄';
-  function go(p, noHist) { if (!noHist) back.push(path); path = p; draw(); }
-  function draw() {
-    const node = path.length ? FS.get(path) : FS.root();
-    addr.textContent = path.length ? path.join(' › ') : 'This PC';
-    win.setTitle(path.length ? path[path.length - 1] : 'This PC');
-    const names = Object.keys(node || {});
-    list.innerHTML = names.length ? names.map(n => `<div class="ex-item" data-n="${n}"><span class="em">${iconFor(n, node[n])}</span>${n}</div>`).join('') : '<div style="opacity:.6;padding:10px">This folder is empty.</div>';
-    st.textContent = names.length + ' item(s)';
-  }
-  list.onclick = e => { list.querySelectorAll('.sel').forEach(x => x.classList.remove('sel')); const i = e.target.closest('.ex-item'); if (i) i.classList.add('sel'); };
-  list.ondblclick = e => {
-    const i = e.target.closest('.ex-item'); if (!i) return;
-    const n = i.dataset.n, node = path.length ? FS.get(path) : FS.root();
-    if (typeof node[n] === 'object') go([...path, n]);
-    else OS.open('notepad', { name: n, path: [...path], content: node[n] });
-  };
-  body.querySelector('.ex-bar').onclick = e => {
-    const a = e.target.dataset.a;
-    if (a === 'back' && back.length) go(back.pop(), true);
-    if (a === 'up' && path.length) go(path.slice(0, -1));
-  };
-  draw();
-}},
+const APPS = {
 
 /* ---------- Notepad ---------- */
 notepad: { name: 'Notepad', icon: '📝', w: 560, h: 400,
@@ -87,12 +107,13 @@ render(body, win, arg) {
   const pos = () => { const l = ta.value.slice(0, ta.selectionStart).split('\n'); st.textContent = `Ln ${l.length}, Col ${l[l.length - 1].length + 1}`; };
   const save = () => {
     if (!name) { name = prompt('File name (e.g. notes.txt):', 'notes.txt'); if (!name) return; path = [...HOME, 'Documents']; }
-    FS.set(path, name, ta.value); title(); st.textContent = 'Saved ✔'; if (window.OS) OS.notify('Notepad', 'File saved', name);
+    FS.set(path, name, ta.value); RECENT.add(name, path); title(); st.textContent = 'Saved ✔'; if (window.OS) OS.notify('Notepad', 'File saved', name);
   };
   ta.addEventListener('keyup', pos); ta.addEventListener('click', pos);
   ta.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); } });
   body.querySelector('.np-bar').onclick = e => { const a = e.target.dataset.a; if (a === 'save') save(); if (a === 'new') { name = path = null; ta.value = ''; title(); } };
   title(); ta.focus();
+  if (name && path) RECENT.add(name, path);
 }},
 
 /* ---------- Calculator ---------- */
@@ -119,31 +140,46 @@ render(body, win) {
 }},
 
 /* ---------- Settings ---------- */
-settings: { name: 'Settings', icon: '⚙️', w: 760, h: 480, single: true,
+settings: { name: 'Settings', icon: '⚙️', w: 800, h: 520, single: true,
 render(body, win) {
   const tabs = ['Personalization', 'System', 'About'];
   let tab = 0;
-  const walls = ['1', '2', '3', '4'], accents = ['#0067c0', '#e81123', '#107c10', '#8764b8', '#ff8c00'];
+  const accents = ['#0067c0', '#e81123', '#107c10', '#8764b8', '#ff8c00'];
+  const fits = [['fill', 'Fill'], ['fit', 'Fit'], ['stretch', 'Stretch'], ['tile', 'Tile'], ['center', 'Center']];
   const draw = () => {
     const s = OS.settings;
     let main = '';
     if (tab === 0) main = `<h2>Personalization</h2>
       <div class="card"><b>Theme</b><br><br><button class="btn ${!s.dark ? 'primary' : ''}" data-theme="0">☀️ Light</button> <button class="btn ${s.dark ? 'primary' : ''}" data-theme="1">🌙 Dark</button></div>
-      <div class="card"><b>Background</b><br><br><div class="walls">${walls.map(w => `<div class="wall ${s.wall === w ? 'on' : ''}" data-wall="${w}" style="background:${WALLS[w]}"></div>`).join('')}</div></div>
+      <div class="card"><b>Background</b><div class="hint">Windows images ya apni photo — "Browse photos" se apne PC se upload karo. (Desktop pe image drag-drop bhi kar sakte ho.)</div>
+        <div class="walls">${wallIds().map(id => { const w = wallInfo(id); return `<div class="wall ${s.wall === id ? 'on' : ''}" data-wall="${id}" title="${w.name}">${w.custom ? `<button class="wdel" data-del="${id}" title="Remove">✕</button>` : ''}</div>`; }).join('')}
+        <div class="wall add" data-add title="Browse photos">＋<span>Browse photos</span></div></div>
+        <input type="file" id="wfile" accept="image/*" hidden>
+        <div class="fitrow">Choose a fit for your photo: <select id="fit">${fits.map(f => `<option value="${f[0]}" ${s.fit === f[0] ? 'selected' : ''}>${f[1]}</option>`).join('')}</select></div>
+        <div id="wmsg" class="hint"></div></div>
       <div class="card"><b>Accent colour</b><div class="swatches">${accents.map(c => `<div class="sw ${s.accent === c ? 'on' : ''}" data-acc="${c}" style="background:${c}"></div>`).join('')}</div></div>`;
     if (tab === 1) main = `<h2>System</h2><div class="card"><b>Display brightness</b><br><br><input type="range" min="30" max="100" value="${s.brightness}" id="sbr" style="width:100%"></div>
-      <div class="card"><b>Reset</b><br><br><button class="btn" id="rst">Reset files &amp; settings</button></div>`;
-    if (tab === 2) main = `<h2>About</h2><div class="card">Windows 11 Web — educational prototype<br>Version 0.1 (HTML + CSS + JavaScript)<br>Device name: WEB-PC<br>User: Student<br><br><small>Not affiliated with or endorsed by Microsoft.</small></div>`;
+      <div class="card"><b>Reset</b><br><br><button class="btn" id="rst">Reset files, wallpapers &amp; settings</button></div>`;
+    if (tab === 2) main = `<h2>About</h2><div class="card">Windows 11 Web — educational prototype<br>Version 0.3 (HTML + CSS + JavaScript)<br>Device name: WEB-PC<br>User: Student<br><br><small>Not affiliated with or endorsed by Microsoft.</small></div>`;
     body.innerHTML = `<div class="set"><div class="set-side">${tabs.map((t, i) => `<div class="${i === tab ? 'on' : ''}" data-t="${i}">${t}</div>`).join('')}</div><div class="set-main">${main}</div></div>`;
+    body.querySelectorAll('.wall[data-wall]').forEach(el => applyWall(el, el.dataset.wall, 'fill'));
   };
+  const msg = t => { const m = body.querySelector('#wmsg'); if (m) m.textContent = t; };
   body.onclick = e => {
     const d = e.target.dataset;
+    if (d.del) { e.stopPropagation(); CUSTOM_WALLS = CUSTOM_WALLS.filter(w => w.id !== d.del); saveCustomWalls(); if (OS.settings.wall === d.del) OS.set({ wall: '1' }); draw(); return; }
+    if (d.add !== undefined || e.target.closest('[data-add]')) { body.querySelector('#wfile').click(); return; }
     if (d.t) tab = +d.t;
     if (d.theme) OS.set({ dark: d.theme === '1' });
     if (d.wall) OS.set({ wall: d.wall });
     if (d.acc) OS.set({ accent: d.acc });
     if (e.target.id === 'rst' && confirm('Sab reset karna hai?')) { localStorage.clear(); location.reload(); }
-    if (Object.keys(d).length) draw();
+    if (e.target.closest('.wall[data-wall]') && !d.wall) OS.set({ wall: e.target.closest('.wall').dataset.wall });
+    if (Object.keys(d).length || e.target.closest('.wall')) draw();
+  };
+  body.onchange = e => {
+    if (e.target.id === 'fit') OS.set({ fit: e.target.value });
+    if (e.target.id === 'wfile' && e.target.files[0]) addCustomWall(e.target.files[0], (id, err) => { if (id) { OS.set({ wall: id }); draw(); } else msg(err); });
   };
   body.oninput = e => { if (e.target.id === 'sbr') OS.set({ brightness: +e.target.value }); };
   draw();
