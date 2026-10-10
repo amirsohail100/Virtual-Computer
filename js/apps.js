@@ -2,6 +2,14 @@
    Each app: { name, icon, w, h, single?, render(body, win, arg) }
    Naya app add karna ho to bas APPS me ek entry add karo. */
 
+/* Wallpapers (Settings + desktop dono yahin se lete hain) */
+const WALLS = {
+  1: "url('assets/bloom-dark.svg') center/cover no-repeat #020814",
+  2: "url('assets/bloom-light.svg') center/cover no-repeat #dfe9ff",
+  3: 'radial-gradient(circle at 70% 30%,#f093fb 0,transparent 45%),linear-gradient(135deg,#2b1055,#7597de)',
+  4: 'radial-gradient(circle at 25% 70%,#5fd38d 0,transparent 45%),linear-gradient(135deg,#0f2027,#2c7744)'
+};
+
 const HOME = ['Local Disk (C:)', 'Users', 'Student'];
 
 /* ---------- Virtual file system (saved in localStorage) ---------- */
@@ -79,7 +87,7 @@ render(body, win, arg) {
   const pos = () => { const l = ta.value.slice(0, ta.selectionStart).split('\n'); st.textContent = `Ln ${l.length}, Col ${l[l.length - 1].length + 1}`; };
   const save = () => {
     if (!name) { name = prompt('File name (e.g. notes.txt):', 'notes.txt'); if (!name) return; path = [...HOME, 'Documents']; }
-    FS.set(path, name, ta.value); title(); st.textContent = 'Saved ✔';
+    FS.set(path, name, ta.value); title(); st.textContent = 'Saved ✔'; if (window.OS) OS.notify('Notepad', 'File saved', name);
   };
   ta.addEventListener('keyup', pos); ta.addEventListener('click', pos);
   ta.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); } });
@@ -121,19 +129,13 @@ render(body, win) {
     let main = '';
     if (tab === 0) main = `<h2>Personalization</h2>
       <div class="card"><b>Theme</b><br><br><button class="btn ${!s.dark ? 'primary' : ''}" data-theme="0">☀️ Light</button> <button class="btn ${s.dark ? 'primary' : ''}" data-theme="1">🌙 Dark</button></div>
-      <div class="card"><b>Background</b><br><br><div class="walls">${walls.map(w => `<div class="wall ${s.wall === w ? 'on' : ''}" data-wall="${w}" style="background:${getComputedStyle(document.documentElement).getPropertyValue('--w' + w) || ''}"></div>`).join('')}</div></div>
+      <div class="card"><b>Background</b><br><br><div class="walls">${walls.map(w => `<div class="wall ${s.wall === w ? 'on' : ''}" data-wall="${w}" style="background:${WALLS[w]}"></div>`).join('')}</div></div>
       <div class="card"><b>Accent colour</b><div class="swatches">${accents.map(c => `<div class="sw ${s.accent === c ? 'on' : ''}" data-acc="${c}" style="background:${c}"></div>`).join('')}</div></div>`;
     if (tab === 1) main = `<h2>System</h2><div class="card"><b>Display brightness</b><br><br><input type="range" min="30" max="100" value="${s.brightness}" id="sbr" style="width:100%"></div>
       <div class="card"><b>Reset</b><br><br><button class="btn" id="rst">Reset files &amp; settings</button></div>`;
     if (tab === 2) main = `<h2>About</h2><div class="card">Windows 11 Web — educational prototype<br>Version 0.1 (HTML + CSS + JavaScript)<br>Device name: WEB-PC<br>User: Student<br><br><small>Not affiliated with or endorsed by Microsoft.</small></div>`;
     body.innerHTML = `<div class="set"><div class="set-side">${tabs.map((t, i) => `<div class="${i === tab ? 'on' : ''}" data-t="${i}">${t}</div>`).join('')}</div><div class="set-main">${main}</div></div>`;
-    body.querySelectorAll('.wall').forEach(el => el.style.background = WALL_CSS[el.dataset.wall]);
   };
-  const WALL_CSS = {
-    1: 'radial-gradient(ellipse at 30% 65%,#59b0ff 0,transparent 42%),linear-gradient(135deg,#0b1f5c,#1a6fe0 60%,#8ec5ff)',
-    2: 'radial-gradient(circle at 70% 30%,#f093fb 0,transparent 45%),linear-gradient(135deg,#2b1055,#7597de)',
-    3: 'radial-gradient(circle at 25% 70%,#5fd38d 0,transparent 45%),linear-gradient(135deg,#0f2027,#2c7744)',
-    4: 'radial-gradient(circle at 60% 35%,#ffd194 0,transparent 40%),linear-gradient(135deg,#ff7e5f,#6a3093)' };
   body.onclick = e => {
     const d = e.target.dataset;
     if (d.t) tab = +d.t;
