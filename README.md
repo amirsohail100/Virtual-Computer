@@ -7,7 +7,7 @@ Home page pe user apna OS chunta hai, aur wahi khul jata hai.
 | OS | Status |
 |---|---|
 | Windows 11 | ✅ Available |
-| macOS | 🕒 Coming soon |
+| macOS | ✅ Available |
 | Android | 🕒 Coming soon |
 | iPhone (iOS) | 🕒 Coming soon |
 
@@ -16,8 +16,8 @@ Home page pe user apna OS chunta hai, aur wahi khul jata hai.
 ## Kaise chalayein
 1. Zip extract karo.
 2. Root ke `index.html` ko browser me kholo (home page).
-3. **Windows 11** card pe click karo.
-4. Wapas aane ke liye Windows me Start menu → power button → **Switch OS**.
+3. **Windows 11** ya **macOS** card pe click karo.
+4. Wapas aane ke liye: Windows me Start menu → power button → **Switch OS**. macOS me Apple menu (menu bar ka sabse left icon) → **Switch OS…**.
 
 Local server (optional): `python -m http.server 8000` → http://localhost:8000
 Online dalna ho to poora folder GitHub Pages / Netlify / Vercel pe upload karo.
@@ -30,32 +30,46 @@ js/home.js              OS list (SYSTEMS) + launch logic
 LICENSE                 education / learning use only
 os/
   windows/              Windows 11 (ready)
-    index.html
-    css/style.css
+    index.html, css/style.css
     js/main.js          OS core: windows, taskbar, Start, tray panels
     js/apps.js          wallpapers, file system, core apps
     js/explorer.js      File Explorer
     js/apps-extra.js    Mail, Calendar, Store, Photos, Clock, Camera, Weather, Recycle Bin
-    assets/             wallpapers (bloom-dark, bloom-light, glow)
-  mac/ android/ iphone/ (aage banenge)
+    assets/             bloom-dark, bloom-light, glow (wallpapers)
+  mac/                  macOS (ready)
+    index.html, css/style.css
+    js/main.js          OS core: windows, menu bar, Dock, Launchpad, Spotlight, Control Center, Notification Center
+    js/apps.js          wallpapers, file system, sab apps
+    assets/             waves, hills, ribbons (wallpapers)
+  android/ iphone/      (aage banenge)
 ```
 
 ## Naya OS kaise add karein
 1. `os/<naam>/` folder banao aur usme `index.html` rakho (har OS apne folder me poora self-contained rahe).
 2. `js/home.js` ke `SYSTEMS` me us OS ki entry me `ready: true` aur `path: 'os/<naam>/index.html'` likho.
-3. Us OS me ek "Switch OS" button do jo `../../index.html` pe le jaye (Windows me power menu me hai).
+3. Us OS me ek "Switch OS" option do jo `../../index.html` pe le jaye.
 
 ## Windows 11 — features
 - Lock screen, desktop icons, 4 wallpapers + apna wallpaper upload (drag-drop bhi), dark/light mode, accent colour
 - Taskbar (pinned + khule apps, right-click Pin/Unpin), Start menu (Pinned, All apps, Recommended, search), tray panels (hidden icons, keyboard layout, quick settings, notifications + calendar)
 - Window manager: drag, resize, minimize, maximize, close
 - Apps: File Explorer, Notepad, Calculator, Settings, Edge-style browser, Paint, Terminal, Task Manager, Mail, Calendar, Store (demo), Photos, Clock, Camera, Weather (demo), Recycle Bin
-- Files aur settings browser ke `localStorage` me save hote hain
+
+## macOS — features
+- Login screen (koi bhi password chalega), menu bar (Apple menu, app menus File/Edit/View/Window/Help, status icons, date-time), Light / Dark mode, accent colour
+- **Dock:** magnification (hover pe icons bade hote hain), running dots, bounce animation, minimized windows, right-click → Keep in Dock / Quit, size aur auto-hide settings
+- **Launchpad** (Dock ka rocket icon ya `F4`), **Spotlight** (menu bar ka search icon ya `Ctrl + Space`: apps, files, calculator, web search), **Control Center** (Wi-Fi, Bluetooth, AirDrop, Do Not Disturb, Dark Mode, brightness, sound, Night Shift), **Notification Center** (clock pe click: notifications + calendar + weather)
+- Window traffic lights (close / minimize / zoom), drag, resize, double-click titlebar zoom
+- Wallpapers: Waves, Dusk Hills, Ribbons + apna photo upload (Fill / Fit / Stretch / Center / Tile), image desktop pe drag-drop bhi
+- Apps: Finder (sidebar, icon/list view, New Folder, Trash, Applications, Recents, search), TextEdit, Notes, Calculator, Safari-style browser, Calendar (events), Clock (world clock, stopwatch, timer), Weather (demo), Photos, Photo Booth (camera), Terminal, Activity Monitor, System Settings
+- Desktop pe right-click: New Folder, Change Desktop Background, Dark/Light mode
+- Files, notes, events aur settings browser ke `localStorage` me save hote hain
 
 ## Version history
-**v0.4** — Project ka naam Virtual Computer. Home page (Windows / macOS / Android / iPhone cards), Windows `os/windows/` me shift, "Switch OS" button.
-**v0.3** — Win11 Start menu aur File Explorer redesign, custom wallpaper upload, 8 naye apps, default pinned taskbar apps.
-**v0.2** — Bloom wallpaper, Win11 Start logo, tray panels, notifications + calendar, right-click menus.
+**v0.5** — macOS add hua (`os/mac/`): menu bar, Dock, Launchpad, Spotlight, Control Center, Notification Center, 13 apps, 3 naye wallpapers, custom wallpaper upload. Home page pe macOS card ab "Available".
+**v0.4** — Project ka naam Virtual Computer. Home page, Windows `os/windows/` me shift, "Switch OS".
+**v0.3** — Win11 Start menu aur File Explorer redesign, custom wallpaper upload, 8 naye apps.
+**v0.2** — Bloom wallpaper, tray panels, notifications + calendar.
 **v0.1** — Pehla Windows 11 prototype.
 
 ## License
