@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>macOS — Virtual Computer</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="screen">
+
+  <!-- Login / lock screen -->
+  <div id="lock">
+    <div class="l-time"><div id="lTime"></div><div id="lDate"></div></div>
+    <div class="l-user">
+      <div class="l-avatar">S</div>
+      <div class="l-name">Student</div>
+      <div class="l-pass"><input id="lPass" type="password" placeholder="Enter Password" autocomplete="off"><button id="lGo" title="Log in">→</button></div>
+      <div class="l-hint">Type anything and press Return</div>
+    </div>
+    <div class="l-foot"><button data-pw="sleep">Sleep</button><button data-pw="restart">Restart</button><button data-pw="shutdown">Shut Down</button><button data-pw="home">Switch OS</button></div>
+  </div>
+
+  <div id="desktop"><div id="dIcons"></div></div>
+  <div id="windows"></div>
+
+  <!-- Menu bar -->
+  <div id="menubar">
+    <div class="mb-left" id="mbLeft"></div>
+    <div class="mb-right">
+      <span class="mb-i" id="mbBat" title="Battery"><svg width="22" height="12" viewBox="0 0 22 12"><rect x=".5" y=".5" width="18" height="11" rx="3" fill="none" stroke="currentColor" opacity=".6"/><rect x="2" y="2" width="12" height="8" rx="1.8" fill="currentColor"/><rect x="19.5" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".6"/></svg></span>
+      <button class="mb-i" id="mbWifi" title="Wi-Fi"></button>
+      <button class="mb-i" id="mbSearch" title="Spotlight Search"></button>
+      <button class="mb-i" id="mbCC" title="Control Center"></button>
+      <button class="mb-i mb-clock" id="mbClock"></button>
+    </div>
+  </div>
+  <div id="menu" class="hidden"></div>
+
+  <!-- Dock -->
+  <div id="dockWrap"><div id="dock"></div></div>
+
+  <!-- Launchpad -->
+  <div id="launchpad" class="hidden">
+    <div class="lp-search"><input id="lpInput" placeholder="Search" autocomplete="off"></div>
+    <div id="lpGrid"></div>
+  </div>
+
+  <!-- Spotlight -->
+  <div id="spot" class="hidden">
+    <div class="sp-box">
+      <div class="sp-in"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="spInput" placeholder="Spotlight Search" autocomplete="off"></div>
+      <div id="spRes"></div>
+    </div>
+  </div>
+
+  <div id="cc" class="panel hidden"></div>
+  <div id="nc" class="hidden"><div id="ncPanel"></div></div>
+  <div id="toasts"></div>
+  <div id="ctx" class="hidden"></div>
+  <div id="dim"></div>
+  <div id="night"></div>
+  <div id="off" class="hidden"><button id="powerOn">⏻</button></div>
+</div>
+
+<script src="js/apps.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
