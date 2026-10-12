@@ -1,0 +1,17 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+
+# Python / Node helper files
+__pycache__/
+*.pyc
+node_modules/
+
+# Packages and logs
+*.zip
+*.log
