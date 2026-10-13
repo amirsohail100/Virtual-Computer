@@ -35,3 +35,12 @@ An app is an object in the `APPS` registry:
 
 ## Home page
 `js/home.js` holds the `SYSTEMS` list. An entry with `ready: true` and a `path` becomes a launchable card.
+
+## Menus, dialogs and overlays
+- **Windows:** `OS.menu(x, y, items)` shows a context menu. An item is `{ icon, label, key, fn, disabled, sub }`; `sub` holds a sub-menu. `OS.modal({ title, html, buttons })` shows a dialog (Properties, Run). Task View is an overlay that lists open windows.
+- **macOS:** `OS.showCtx(x, y, [[label, fn], ...])` is the context menu. Spotlight, Launchpad, Control Center, Notification Center, Mission Control, the app switcher and Quick Look are overlays that `closeOverlays()` can hide together.
+- The shared **New** menu (Folder, Shortcut, Word, Excel, Text, Zip ...) is built by `newMenuItems(path, after)` in `os/windows/js/apps.js` and is used by both the Explorer and the desktop.
+
+## Keyboard shortcuts
+Each OS keeps one table, `SC`, in `js/main.js`. A single `keydown` listener finds the matching row and runs it, and the Keyboard Shortcuts app reads the same table through `OS.shortcuts`, so the help screen cannot drift from the real keys. See `SHORTCUTS.md` for the list.
+
