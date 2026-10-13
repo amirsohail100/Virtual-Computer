@@ -109,7 +109,7 @@ const OS = (() => {
       const ox = parseFloat(w.el.style.left) || 0, oy = parseFloat(w.el.style.top) || 0;
       tb.setPointerCapture(e.pointerId);
       const mv = ev => { w.el.style.left = (ox + ev.clientX - sx) + 'px'; w.el.style.top = Math.max(0, oy + ev.clientY - sy) + 'px'; };
-      const up = () => { tb.removeEventListener('pointermove', mv); tb.removeEventListener('pointerup', up); };
+      const up = ev => { tb.removeEventListener('pointermove', mv); tb.removeEventListener('pointerup', up); if (ev.clientY < 6) { if (!w.max) toggleMax(w); } else if (ev.clientX < 6) snap(w, 'left'); else if (ev.clientX > innerWidth - 6) snap(w, 'right'); };
       tb.addEventListener('pointermove', mv); tb.addEventListener('pointerup', up);
     });
   }
@@ -321,12 +321,16 @@ const OS = (() => {
   }
 
   /* ---------- Desktop ---------- */
+  const dskPath = [...HOME, 'Desktop'];
   function buildDesktop() {
-    $('#icons').innerHTML = desktopIcons.map((d, i) => `<div class="dicon" data-i="${i}"><span class="em">${d[0]}</span>${d[1]}</div>`).join('');
+    const fixed = desktopIcons.map((d, i) => `<div class="dicon" data-i="${i}"><span class="em">${d[0]}</span>${d[1]}</div>`).join('');
+    const fsIcons = Object.entries(FS.get(dskPath) || {}).map(([k, v]) => `<div class="dicon" data-fs="${escH(k)}"><span class="em">${typeof v === 'object' ? FX.folderSvg('Desktop' === k ? 'Desktop' : '_', 40) : FX.fileSvg(k, 40)}</span>${escH(k)}</div>`).join('');
+    $('#icons').innerHTML = fixed + fsIcons;
   }
   $('#icons').addEventListener('click', e => { $$('.dicon').forEach(x => x.classList.remove('sel')); const d = e.target.closest('.dicon'); if (d) d.classList.add('sel'); });
   $('#icons').addEventListener('dblclick', e => {
     const d = e.target.closest('.dicon'); if (!d) return;
+    if (d.dataset.fs) return FX.openItem(dskPath, d.dataset.fs);
     const [, name, app, arg] = desktopIcons[d.dataset.i];
     if (!app) return notify('File Explorer', name, name + ' is empty.');
     open(app, arg === undefined ? null : arg);
@@ -340,47 +344,122 @@ const OS = (() => {
     addCustomWall(f, (id, err) => id ? (set({ wall: id }), notify('Personalization', 'Wallpaper changed', f.name)) : notify('Personalization', 'Could not set wallpaper', err));
   });
 
-  /* ---------- Right-click menus ---------- */
-  function showCtx(x, y, items) {
-    const c = $('#ctx');
-    c.innerHTML = items.map(i => i === '-' ? '<hr>' : `<div data-c="${i[2]}"><span class="ci">${i[0]}</span>${i[1]}</div>`).join('');
-    c.classList.remove('hidden');
-    c.style.left = Math.max(4, Math.min(x, innerWidth - c.offsetWidth - 6)) + 'px';
-    c.style.top = Math.max(4, Math.min(y, innerHeight - c.offsetHeight - 6)) + 'px';
+  /* ---------- Context menu (icons, shortcuts, sub-menus) ---------- */
+  let menuFns = [];
+  const menuHTML = items => items.map(i => {
+    if (i === '-') return '<hr>';
+    menuFns.push(i); const idx = menuFns.length - 1;
+    return `<div class="cm-i ${i.disabled ? 'dis' : ''} ${i.sub ? 'has' : ''}" data-i="${idx}"><span class="cm-ic">${i.icon || ''}</span><span class="cm-l">${i.label}</span><span class="cm-k">${i.key || ''}</span>${i.sub ? '<span class="cm-ar">›</span><div class="cm-sub">' + menuHTML(i.sub) + '</div>' : ''}</div>`;
+  }).join('');
+  function menu(x, y, items) {
+    closeFlyouts(); menuFns = []; const c = $('#ctx'); c.innerHTML = menuHTML(items.filter(Boolean)); c.classList.remove('hidden');
+    c.style.left = Math.max(4, Math.min(x, innerWidth - c.offsetWidth - 6)) + 'px'; c.style.top = Math.max(4, Math.min(y, innerHeight - c.offsetHeight - 6)) + 'px';
   }
+  $('#ctx').addEventListener('mouseover', e => {
+    const it = e.target.closest('.cm-i.has'); if (!it) return; const sub = it.querySelector(':scope > .cm-sub'); if (!sub) return;
+    sub.style.left = ''; sub.style.right = ''; sub.style.top = ''; const r = sub.getBoundingClientRect(), pr = it.getBoundingClientRect();
+    if (r.right > innerWidth - 4) { sub.style.left = 'auto'; sub.style.right = 'calc(100% - 2px)'; }
+    if (r.bottom > innerHeight - 4) sub.style.top = (innerHeight - 4 - r.bottom - 5) + 'px';
+  });
+  $('#ctx').addEventListener('click', e => {
+    const d = e.target.closest('.cm-i'); if (!d || d.classList.contains('dis') || d.classList.contains('has')) return;
+    const it = menuFns[+d.dataset.i]; closeFlyouts(); if (it && it.fn) it.fn();
+  });
+  $('#ctx').addEventListener('contextmenu', e => e.preventDefault());
+
   document.addEventListener('contextmenu', e => {
+    if (e.target.closest('textarea, input')) return;
     e.preventDefault(); closeFlyouts();
     const gi = e.target.closest('#start .gitem, #start .all-it');
-    if (gi) { const id = gi.dataset.app, pin = pinned.includes(id); return showCtx(e.clientX, e.clientY, [['▶️', 'Open', 'open:' + id], [pin ? '📌' : '📍', pin ? 'Unpin from taskbar' : 'Pin to taskbar', (pin ? 'unpin:' : 'pin:') + id]]); }
-    if (e.target.closest('.win,.flyout,#notifCenter,#start')) return;
+    if (gi) { const id = gi.dataset.app, pin = pinned.includes(id); return menu(e.clientX, e.clientY, [{ icon: '▶️', label: 'Open', fn: () => open(id) }, { icon: pin ? '📌' : '📍', label: pin ? 'Unpin from taskbar' : 'Pin to taskbar', fn: () => { pinned = pin ? pinned.filter(x => x !== id) : [...pinned, id]; savePinned(); renderTaskbar(); } }]); }
+    if (e.target.closest('.win,.flyout,#notifCenter,#start,#modal,#taskview')) return;
     if (e.target.closest('#taskbar')) {
       const app = e.target.closest('.tapp');
       if (app) { const id = app.dataset.app, pin = pinned.includes(id), run = [...wins.values()].some(w => w.app === id);
-        return showCtx(e.clientX, Math.max(8, e.clientY - (run ? 140 : 100)), [['▶️', run ? 'Open new window' : 'Open', 'open:' + id], [pin ? '📌' : '📍', pin ? 'Unpin from taskbar' : 'Pin to taskbar', (pin ? 'unpin:' : 'pin:') + id]].concat(run ? [['✕', 'Close window', 'closeapp:' + id]] : [])); }
-      return showCtx(e.clientX, e.clientY - 90, [['📊', 'Task Manager', 'tm'], ['⚙️', 'Taskbar settings', 'pers']]);
+        return menu(e.clientX, Math.max(8, e.clientY - (run ? 140 : 100)), [{ icon: '▶️', label: run ? 'Open new window' : 'Open', fn: () => open(id) }, { icon: pin ? '📌' : '📍', label: pin ? 'Unpin from taskbar' : 'Pin to taskbar', fn: () => { pinned = pin ? pinned.filter(x => x !== id) : [...pinned, id]; savePinned(); renderTaskbar(); } }, run ? { icon: '✕', label: 'Close window', fn: () => [...wins.values()].filter(w => w.app === id).forEach(w => close(w.id)) } : null]); }
+      return menu(e.clientX, e.clientY - 90, [{ icon: '📊', label: 'Task Manager', fn: () => open('taskmgr') }, { icon: '⚙️', label: 'Taskbar settings', fn: () => open('settings') }]);
     }
-    showCtx(e.clientX, e.clientY, [['🔄', 'Refresh', 'refresh'], ['🖼️', 'Next wallpaper', 'wall'], ['🌓', 'Switch dark / light mode', 'dark'], '-',
-      ['⬛', 'Open in Terminal', 'term'], ['🖥️', 'Display settings', 'pers'], ['🎨', 'Personalize', 'pers']]);
+    const di = e.target.closest('.dicon[data-fs]');
+    if (di) { const name = di.dataset.fs; $$('.dicon').forEach(x => x.classList.remove('sel')); di.classList.add('sel');
+      return menu(e.clientX, e.clientY, [{ icon: '📂', label: 'Open', fn: () => FX.openItem(dskPath, name) }, { icon: '✏️', label: 'Rename', key: 'F2', fn: () => { const n = prompt('Rename:', name); if (n && !(n in FS.get(dskPath))) { const d = FS.get(dskPath); d[n] = d[name]; delete d[name]; FS.save(); buildDesktop(); } } }, { icon: '🗑️', label: 'Delete', key: 'Del', fn: () => { FS.del(dskPath, name); buildDesktop(); } }]); }
+    menu(e.clientX, e.clientY, [{ icon: '🔄', label: 'Refresh', fn: () => { $('#icons').style.opacity = 0; buildDesktop(); setTimeout(() => $('#icons').style.opacity = 1, 140); } }, '-',
+      { icon: '➕', label: 'New', sub: newMenuItems(dskPath, () => buildDesktop()) }, '-',
+      { icon: '🖼️', label: 'Next wallpaper', fn: () => { const ids = wallIds(); set({ wall: ids[(ids.indexOf(settings.wall) + 1) % ids.length] }); } }, { icon: '🌓', label: 'Switch dark / light mode', fn: () => set({ dark: !settings.dark }) }, '-',
+      { icon: '⬛', label: 'Open in Terminal', fn: () => open('terminal') }, { icon: '🖥️', label: 'Display settings', fn: () => open('settings') }, { icon: '🎨', label: 'Personalize', fn: () => open('settings') }]);
   });
-  $('#ctx').addEventListener('click', e => {
-    const a = (e.target.closest('[data-c]') || {}).dataset; if (!a) return;
-    const c = a.c;
-    if (c === 'refresh') { $('#icons').style.opacity = 0; setTimeout(() => $('#icons').style.opacity = 1, 140); }
-    if (c === 'wall') { const ids = wallIds(); set({ wall: ids[(ids.indexOf(settings.wall) + 1) % ids.length] }); }
-    if (c === 'dark') set({ dark: !settings.dark });
-    if (c === 'term') open('terminal');
-    if (c === 'pers') open('settings');
-    if (c === 'tm') open('taskmgr');
-    if (c.startsWith('open:')) open(c.slice(5));
-    if (c.startsWith('pin:')) { pinned.push(c.slice(4)); savePinned(); renderTaskbar(); }
-    if (c.startsWith('unpin:')) { pinned = pinned.filter(x => x !== c.slice(6)); savePinned(); renderTaskbar(); }
-    if (c.startsWith('closeapp:')) [...wins.values()].filter(w => w.app === c.split(':')[1]).forEach(w => close(w.id));
+
+  /* ---------- Modal dialogs (Properties, Run ...) ---------- */
+  function modal({ title, html, buttons = [{ label: 'OK', primary: true }] }) {
+    const m = $('#modal'); m.innerHTML = `<div class="md-box"><div class="md-t"><span>${title}</span><button class="md-x">✕</button></div><div class="md-b">${html}</div><div class="md-f">${buttons.map((b, i) => `<button class="btn ${b.primary ? 'primary' : ''}" data-b="${i}">${b.label}</button>`).join('')}</div></div>`;
+    m.classList.remove('hidden'); const close = () => m.classList.add('hidden');
+    m.onclick = e => { if (e.target === m || e.target.closest('.md-x')) return close(); const b = e.target.closest('[data-b]'); if (b) { const bt = buttons[+b.dataset.b]; if (!(bt.fn && bt.fn(m) === false)) close(); } };
+    m.onkeydown = e => { if (e.key === 'Escape') close(); if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { const p = buttons.findIndex(x => x.primary); if (p > -1) $(`[data-b="${p}"]`, m).click(); } };
+    const f = $('input', m); if (f) f.focus(); else $('.btn', m) && $('.btn', m).focus(); return { close, el: m };
+  }
+  const RUN_MAP = { notepad: 'notepad', calc: 'calc', calculator: 'calc', explorer: 'explorer', cmd: 'terminal', powershell: 'terminal', wt: 'terminal', terminal: 'terminal', mspaint: 'paint', paint: 'paint', taskmgr: 'taskmgr', control: 'settings', 'ms-settings:': 'settings', settings: 'settings', msedge: 'edge', edge: 'edge', chrome: 'edge', mail: 'mail', camera: 'camera', clock: 'clock', weather: 'weather', photos: 'photos', store: 'store', calendar: 'calendar', recycle: 'recycle', shortcuts: 'shortcuts' };
+  function run(cmd) {
+    cmd = (cmd || '').trim(); if (!cmd) return false; const c = cmd.toLowerCase().replace(/\.exe$/, '');
+    if (RUN_MAP[c]) { open(RUN_MAP[c]); return true; }
+    const dm = cmd.match(/^([a-z]):\\?(.*)$/i);
+    if (dm) { const parts = ['Local Disk (' + dm[1].toUpperCase() + ':)', ...dm[2].split('\\').filter(Boolean)]; const n = FS.get(parts); if (n && typeof n === 'object') { open('explorer', { path: parts }); return true; } return false; }
+    if (/^https?:\/\//i.test(cmd) || /^[\w-]+(\.[\w-]+)+/.test(cmd)) { open('edge', { url: cmd }); return true; }
+    return false;
+  }
+  function openRun() {
     closeFlyouts();
+    modal({ title: 'Run', html: '<div class="run"><span>🏃</span><p>Type the name of a program, folder, or Internet resource, and Windows will open it for you.</p></div><div class="run-row">Open: <input id="runIn" placeholder="notepad, calc, cmd, C:\\Users, example.com" autocomplete="off"></div>',
+      buttons: [{ label: 'OK', primary: true, fn: m => { const v = $('#runIn', m).value; if (v.trim() && !run(v)) notify('Run', `Windows cannot find '${v}'`, 'Make sure you typed the name correctly, and then try again.'); } }, { label: 'Cancel' }] });
+  }
+
+  /* ---------- Task View, show desktop, snap ---------- */
+  function openTaskView() {
+    closeFlyouts(); const tv = $('#taskview'), ws = [...wins.values()];
+    tv.innerHTML = `<div class="tv-h">Task View</div><div class="tv-g">${ws.length ? ws.map(w => `<div class="tv-c" data-w="${w.id}"><div class="tv-t">${APPS[w.app].icon} ${escH(w.title)}</div><div class="tv-p">${APPS[w.app].icon}</div><button class="tv-x" data-x="${w.id}" title="Close">✕</button></div>`).join('') : '<div class="tv-e">No open windows</div>'}</div>`;
+    tv.classList.remove('hidden');
+  }
+  $('#taskview').addEventListener('click', e => {
+    const x = e.target.closest('[data-x]'); if (x) { close(x.dataset.x); return openTaskView(); }
+    const c = e.target.closest('[data-w]'); if (c) { const w = wins.get(c.dataset.w); $('#taskview').classList.add('hidden'); w && focus(w); return; }
+    $('#taskview').classList.add('hidden');
+  });
+  let deskSaved = null;
+  function showDesktop() {
+    const vis = [...wins.values()].filter(w => !w.min);
+    if (vis.length) { deskSaved = vis.map(w => w.id); vis.forEach(w => { w.min = true; w.el.style.display = 'none'; }); focused = null; renderTaskbar(); }
+    else if (deskSaved) { deskSaved.forEach(id => { const w = wins.get(id); if (w) { w.min = false; w.el.style.display = ''; } }); deskSaved = null; renderTaskbar(); }
+  }
+  function snap(w, side) {
+    if (w.max) toggleMax(w); const W = innerWidth, H = innerHeight - 48;
+    Object.assign(w.el.style, { left: side === 'left' ? '0px' : (W / 2) + 'px', top: '0px', width: (W / 2) + 'px', height: H + 'px' }); focus(w);
+  }
+
+  /* ---------- Keyboard shortcuts (Ctrl+Alt+key = Win+key, because the browser cannot capture the Windows key) ---------- */
+  const fw = () => wins.get(focused);
+  const SC = [
+    { code: 'KeyS', keys: 'Ctrl+Alt+S', win: 'Win+S', group: 'System', desc: 'Open Start menu and search', run: () => $('#startBtn').click() },
+    { code: 'KeyE', keys: 'Ctrl+Alt+E', win: 'Win+E', group: 'System', desc: 'Open File Explorer', run: () => open('explorer', { path: [] }) },
+    { code: 'KeyR', keys: 'Ctrl+Alt+R', win: 'Win+R', group: 'System', desc: 'Open the Run dialog', run: openRun },
+    { code: 'KeyD', keys: 'Ctrl+Alt+D', win: 'Win+D', group: 'System', desc: 'Show / hide the desktop', run: showDesktop },
+    { code: 'KeyL', keys: 'Ctrl+Alt+L', win: 'Win+L', group: 'System', desc: 'Lock the screen', run: () => $('#lock').classList.remove('up') },
+    { code: 'KeyI', keys: 'Ctrl+Alt+I', win: 'Win+I', group: 'System', desc: 'Open Settings', run: () => open('settings') },
+    { code: 'KeyA', keys: 'Ctrl+Alt+A', win: 'Win+A', group: 'System', desc: 'Open Quick settings', run: () => $('#trayQuick').click() },
+    { code: 'KeyN', keys: 'Ctrl+Alt+N', win: 'Win+N', group: 'System', desc: 'Open notifications and calendar', run: () => $('#trayClock').click() },
+    { code: 'KeyT', keys: 'Ctrl+Alt+T', win: 'Win+Tab', group: 'System', desc: 'Open Task View', run: openTaskView },
+    { code: 'KeyK', keys: 'Ctrl+Alt+K', win: 'Ctrl+Shift+Esc', group: 'System', desc: 'Open Task Manager', run: () => open('taskmgr') },
+    { code: 'KeyM', keys: 'Ctrl+Alt+M', win: 'Win+M', group: 'Windows', desc: 'Minimize all windows', run: () => [...wins.values()].filter(w => !w.min).forEach(w => { w.min = true; w.el.style.display = 'none'; }) || renderTaskbar() },
+    { code: 'KeyW', keys: 'Ctrl+Alt+W', win: 'Alt+F4', group: 'Windows', desc: 'Close the active window', run: () => focused && close(focused) },
+    { code: 'ArrowUp', keys: 'Ctrl+Alt+↑', win: 'Win+↑', group: 'Windows', desc: 'Maximize the window', run: () => { const w = fw(); if (w && !w.max) toggleMax(w); } },
+    { code: 'ArrowDown', keys: 'Ctrl+Alt+↓', win: 'Win+↓', group: 'Windows', desc: 'Restore, then minimize the window', run: () => { const w = fw(); if (!w) return; if (w.max) toggleMax(w); else minimize(w); } },
+    { code: 'ArrowLeft', keys: 'Ctrl+Alt+←', win: 'Win+←', group: 'Windows', desc: 'Snap the window to the left half', run: () => { const w = fw(); w && snap(w, 'left'); } },
+    { code: 'ArrowRight', keys: 'Ctrl+Alt+→', win: 'Win+→', group: 'Windows', desc: 'Snap the window to the right half', run: () => { const w = fw(); w && snap(w, 'right'); } }
+  ];
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.altKey && !e.shiftKey && !e.metaKey && $('#lock').classList.contains('up')) { const s = SC.find(x => x.code === e.code); if (s) { e.preventDefault(); s.run(); } }
   });
 
   /* ---------- Keyboard & lock screen ---------- */
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeFlyouts();
+    if (e.key === 'Escape') { closeFlyouts(); $('#taskview').classList.add('hidden'); }
     if (e.key === 'Meta') { e.preventDefault(); $('#startBtn').click(); }
   });
   const unlock = () => $('#lock').classList.add('up');
@@ -391,5 +470,5 @@ const OS = (() => {
   $$('[data-ico]').forEach(el => el.innerHTML = ICON[el.dataset.ico]);
   buildDesktop(); buildStart(); showStart('main'); renderTaskbar(); renderTray(); renderNotifs(); apply(); tick(); setInterval(tick, 1000);
 
-  return { open, close, notify, list: () => [...wins.values()], get settings() { return settings; }, set };
+  return { open, close, notify, menu, modal, run, openRun, refreshDesktop: buildDesktop, shortcuts: SC.map(({ keys, win, group, desc }) => ({ keys, win, group, desc })), list: () => [...wins.values()], get settings() { return settings; }, set };
 })();
