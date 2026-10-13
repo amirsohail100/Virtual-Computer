@@ -87,6 +87,41 @@ const FS = (() => {
   return { root: () => root, bin: () => bin, get, set, del, remove, save, find };
 })();
 
+
+/* ---------- file types + "New" menu (shared by Explorer and Desktop) ---------- */
+const FTYPES = {
+  txt: { n: 'Text Document', c: '#7d8590', l: '≡' }, docx: { n: 'Microsoft Word Document', c: '#2b579a', l: 'W' },
+  xlsx: { n: 'Microsoft Excel Worksheet', c: '#217346', l: 'X' }, pptx: { n: 'Microsoft PowerPoint Presentation', c: '#d24726', l: 'P' },
+  accdb: { n: 'Microsoft Access Database', c: '#a4373a', l: 'A' }, pub: { n: 'Microsoft Publisher Document', c: '#077568', l: 'P' },
+  bmp: { n: 'Bitmap image', c: '#2a8fd9', l: '▲' }, zip: { n: 'Compressed (zipped) Folder', c: '#e8b730', l: 'Z' }, lnk: { n: 'Shortcut', c: '#5b9bd5', l: '↗' }
+};
+const extOf = n => (n.includes('.') ? n.split('.').pop().toLowerCase() : '');
+const typeName = (n, v) => typeof v === 'object' ? 'File folder' : (FTYPES[extOf(n)] ? FTYPES[extOf(n)].n : (extOf(n) ? extOf(n).toUpperCase() + ' File' : 'File'));
+const badge = (l, c, s = 16) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}"><rect x="1" y="1" width="22" height="22" rx="5" fill="${c}"/><text x="12" y="17" font-size="13" font-weight="700" text-anchor="middle" fill="#fff" font-family="Segoe UI,sans-serif">${l}</text></svg>`;
+const uniqName = (dir, base, ext = '') => { let n = base + ext, i = 2; while (n in dir) n = `${base} (${i++})${ext}`; return n; };
+const NEW_TYPES = [
+  { label: 'Folder', icon: '📁', base: 'New folder', folder: true },
+  { label: 'Shortcut', icon: badge('↗', '#5b9bd5'), base: 'New shortcut', ext: '.lnk', shortcut: true },
+  { label: 'Microsoft Access Database', icon: badge('A', '#a4373a'), base: 'New Microsoft Access Database', ext: '.accdb' },
+  { label: 'Bitmap image', icon: badge('▲', '#2a8fd9'), base: 'New Bitmap image', ext: '.bmp' },
+  { label: 'Microsoft Word Document', icon: badge('W', '#2b579a'), base: 'New Microsoft Word Document', ext: '.docx' },
+  { label: 'Microsoft PowerPoint Presentation', icon: badge('P', '#d24726'), base: 'New Microsoft PowerPoint Presentation', ext: '.pptx' },
+  { label: 'Microsoft Publisher Document', icon: badge('P', '#077568'), base: 'New Microsoft Publisher Document', ext: '.pub' },
+  { label: 'Text Document', icon: badge('≡', '#7d8590'), base: 'New Text Document', ext: '.txt' },
+  { label: 'Microsoft Excel Worksheet', icon: badge('X', '#217346'), base: 'New Microsoft Excel Worksheet', ext: '.xlsx' },
+  { label: 'Compressed (zipped) Folder', icon: badge('Z', '#e8b730'), base: 'New Compressed (zipped) Folder', ext: '.zip' }
+];
+/* menu items for the "New" sub-menu. path = folder where the item gets created, after(name) = callback */
+function newMenuItems(path, after) {
+  return NEW_TYPES.map(t => ({ icon: t.icon, label: t.label, fn: () => {
+    const dir = FS.get(path); if (!dir || typeof dir !== 'object') return;
+    let content = '';
+    if (t.shortcut) { const target = prompt('Type the location of the item (an app like notepad, or a web address):', 'https://'); if (!target) return; content = target; }
+    const name = uniqName(dir, t.base, t.ext || '');
+    FS.set(path, name, t.folder ? {} : content); after && after(name);
+  } }));
+}
+
 /* recent files (Start menu "Recommended") */
 const RECENT = {
   list() { try { return JSON.parse(localStorage.getItem('w11_recent')) || [{ name: 'readme.txt', path: [...HOME, 'Documents'], t: Date.now() - 4 * 60000 }, { name: 'todo.txt', path: [...HOME, 'Documents'], t: Date.now() - 52 * 60000 }]; } catch (e) { return []; } },
@@ -137,6 +172,12 @@ render(body, win) {
     else { if (op !== null && !fresh) { acc = calc(acc, parseFloat(cur), op); cur = fmt(acc); } else acc = parseFloat(cur); op = k; exp.textContent = `${acc} ${k}`; fresh = true; }
     disp.textContent = cur;
   };
+  /* keyboard: digits, + - * /, Enter, Backspace, Esc */
+  body.tabIndex = 0; body.addEventListener('keydown', e => {
+    const m = { '-': '−', '*': '×', '/': '÷', Enter: '=', Escape: 'C', Backspace: '⌫', c: 'C', C: 'C' }, k = m[e.key] || e.key;
+    const b = [...body.querySelectorAll('.calc-keys button')].find(x => x.textContent === k); if (b) { e.preventDefault(); b.click(); }
+  });
+  body.focus();
 }},
 
 /* ---------- Settings ---------- */
@@ -187,7 +228,7 @@ render(body, win) {
 
 /* ---------- Edge-like browser ---------- */
 edge: { name: 'Microsoft Edge', icon: '🌐', w: 900, h: 540,
-render(body, win) {
+render(body, win, arg) {
   const home = `<body style="font-family:Segoe UI,sans-serif;background:linear-gradient(135deg,#e0f0ff,#f6f9ff);display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0"><h1 style="font-weight:300;font-size:44px;color:#0067c0">Search the web</h1><p style="color:#555">Address bar me URL likho (e.g. wikipedia.org). Kuch websites iframe block karti hain — wo normal hai.</p></body>`;
   body.innerHTML = `<div class="br"><div class="br-bar"><button data-a="b">←</button><button data-a="f">→</button><button data-a="r">⟳</button><input placeholder="Search or enter web address"></div><iframe></iframe></div>`;
   const fr = body.querySelector('iframe'), inp = body.querySelector('input');
@@ -206,7 +247,7 @@ render(body, win) {
     if (a === 'f' && idx < hist.length - 1) load(hist[++idx], false);
     if (a === 'r') fr.src = fr.src;
   };
-  load('');
+  load((arg && arg.url) || '');
 }},
 
 /* ---------- Paint ---------- */
