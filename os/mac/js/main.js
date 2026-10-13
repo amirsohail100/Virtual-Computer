@@ -3,7 +3,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const svg = (p, s = 16, f = 'none') => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="${f}" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
-  apple: svg('<path d="M12 8c-2-1.6-6-.9-6 3.800 0 4.400 3 8.700 5 8.700.8 0 1-.4 1-.4s.2.4 1 .4c2 0 5-4.300 5-8.700 0-4.700-4-5.400-6-3.800z" fill="currentColor"/><path d="M12 7c0-2 1-3.200 2.600-3.800"/>', 17),
+  apple: '<svg viewBox="0 0 24 24" width="17" height="17"><defs><mask id="apb"><rect width="24" height="24" fill="#fff"/><circle cx="19.6" cy="10.6" r="2.7" fill="#000"/></mask></defs><g mask="url(#apb)"><path fill="currentColor" d="M12 8.3C10.8 7.1 8.7 6.7 7.2 7.5 4.7 8.9 4.4 12.7 6.2 15.9 7.3 17.9 8.9 20.2 10.4 20.2c.8 0 1.2-.5 1.6-.5s.8.5 1.6.5c1.5 0 3.1-2.3 4.2-4.3 1.8-3.2 1.5-7-1-8.4-1.5-.8-3.6-.4-4.8.8z"/></g><path fill="currentColor" d="M12.1 7.7C11.7 5.700 12.700 3.900 14.700 3.200 15 5.100 14 6.900 12.100 7.700z"/></svg>',
   wifi: svg('<path d="M2 9a15 15 0 0 1 20 0"/><path d="M5.500 12.800a10 10 0 0 1 13 0"/><path d="M9 16.400a5 5 0 0 1 6 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/>'),
   wifiOff: svg('<path d="M2 9a15 15 0 0 1 20 0" opacity=".4"/><path d="M5.500 12.800a10 10 0 0 1 13 0" opacity=".4"/><path d="M3 3l18 18"/>'),
   search: svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>'),
@@ -16,7 +16,7 @@ const LAUNCHPAD = { name: 'Launchpad', cls: 'i-launchpad', icon: '🚀' };
 const OS = (() => {
   const wins = new Map(); let z = 10, counter = 0, front = 'finder', focused = null;
   const running = new Set(['finder']);
-  let dockPinned = jget('m_dock1', ['finder', 'launchpad', 'safari', 'notes', 'calendar', 'photos', 'calculator', 'terminal', 'settings']);
+  let dockPinned = jget('m_dock2', ['finder', 'launchpad', 'safari', 'messages', 'mail', 'maps', 'photos', 'music', 'calendar', 'notes', 'reminders', 'appstore', 'settings']);
   let settings = { dark: false, wall: 'm1', fit: 'fill', accent: '#0a84ff', brightness: 100, dockSize: 52, magnify: true, hide: false, ...jget('m_settings1', {}) };
   const sys = { wifi: true, bt: true, airdrop: true, dnd: false, night: false, vol: 70 };
   const notifs = [{ id: 1, app: 'System Settings', title: 'Welcome to macOS (Virtual)', text: 'Click the clock to open Notification Center.' }]; let nid = 10;
@@ -121,11 +121,11 @@ const OS = (() => {
       File: [['New Window', () => open(front), '⌘N'], front === 'finder' ? ['New Folder', () => w && w.api && w.api.newFolder && w.api.newFolder(), '⇧⌘N'] : null, '-', ['Close Window', () => w && close(w.id), '⌘W']].filter(Boolean),
       Edit: [['Undo', doc('undo'), '⌘Z'], ['Redo', doc('redo'), '⇧⌘Z'], '-', ['Cut', doc('cut'), '⌘X'], ['Copy', doc('copy'), '⌘C'], ['Paste', doc('paste'), '⌘V'], ['Select All', doc('selectAll'), '⌘A']],
       View: [['Enter Full Screen', () => w && toggleMax(w), '⌃⌘F'], ['Toggle Dark Mode', () => set({ dark: !settings.dark })]],
-      Window: [['Minimize', () => w && minimize(w), '⌘M'], ['Zoom', () => w && toggleMax(w)], '-', ['Bring All to Front', () => wins.forEach(x => focus(x))]],
-      Help: [['macOS Help', () => notify('Help', 'macOS Help', 'Try Spotlight (Ctrl+Space) and Launchpad (F4).')]]
+      Window: [['Minimize', () => w && minimize(w), '⌘M'], ['Minimize All', () => [...wins.values()].forEach(minimize), '⇧⌘M'], ['Zoom', () => w && toggleMax(w), '⌃⌘F'], '-', ['Move Window to Left Half', () => w && snap(w, 'left'), '⌃⌘←'], ['Move Window to Right Half', () => w && snap(w, 'right'), '⌃⌘→'], ['Center Window', () => w && snap(w, 'center'), '⌃⌘C'], '-', ['Mission Control', openMC, '⌃↑'], ['Bring All to Front', () => wins.forEach(x => focus(x))]],
+      Help: [['Keyboard Shortcuts', () => open('shortcuts')], ['macOS Help', () => notify('Help', 'macOS Help', 'Try Spotlight (Ctrl+Space), Launchpad (F4) and Mission Control (F3).')]]
     };
   }
-  const appleMenu = () => [['About This Mac', () => { const x = open('settings'); x && x.api && x.api.pane('About This Mac'); }], '-', ['System Settings…', () => open('settings')], '-', ['Force Quit…', () => open('activity'), '⌥⌘⎋'], '-',
+  const appleMenu = () => [['About This Mac', () => { const x = open('settings'); x && x.api && x.api.pane('About This Mac'); }], '-', ['System Settings…', () => open('settings')], ['App Store…', () => open('appstore')], '-', ['Force Quit…', () => open('activity'), '⌥⌘⎋'], '-',
     ['Sleep', () => { $('#off').classList.remove('hidden'); }], ['Restart…', () => location.reload()], ['Shut Down…', () => $('#off').classList.remove('hidden')], '-', ['Lock Screen', () => $('#lock').classList.remove('up'), '⌃⌘Q'], ['Log Out Student…', () => $('#lock').classList.remove('up')], '-', ['Switch OS…', () => { location.href = '../../index.html'; }]];
   function renderMenubar() {
     const a = appOf(front) || APPS.finder, m = menusFor();
@@ -167,7 +167,7 @@ const OS = (() => {
   $('#dock').addEventListener('contextmenu', e => {
     e.preventDefault(); e.stopPropagation(); const d = e.target.closest('.dk'); if (!d || !d.dataset.app) return;
     const id = d.dataset.app, kept = dockPinned.includes(id), run = running.has(id) && id !== 'finder' && id !== 'launchpad';
-    const items = [[running.has(id) ? 'Open New Window' : 'Open', () => id === 'launchpad' ? toggleLaunchpad() : open(id)], '-', [kept ? 'Remove from Dock' : 'Keep in Dock', () => { dockPinned = kept ? dockPinned.filter(x => x !== id) : [...dockPinned, id]; jset('m_dock1', dockPinned); renderDock(); }]];
+    const items = [[running.has(id) ? 'Open New Window' : 'Open', () => id === 'launchpad' ? toggleLaunchpad() : open(id)], '-', [kept ? 'Remove from Dock' : 'Keep in Dock', () => { dockPinned = kept ? dockPinned.filter(x => x !== id) : [...dockPinned, id]; jset('m_dock2', dockPinned); renderDock(); }]];
     if (run) items.push('-', ['Quit', () => quit(id)]);
     const r = d.getBoundingClientRect(); showCtx(r.left, r.top - items.length * 26 - 14, items);
   });
@@ -253,9 +253,89 @@ const OS = (() => {
     const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = `<small>${escH(app)}</small><b>${escH(title)}</b>${escH(text)}`; $('#toasts').appendChild(t); setTimeout(() => t.remove(), 4500);
   }
 
+  /* ---------- window snapping, Mission Control, app switcher, Quick Look ---------- */
+  function snap(w, side) {
+    if (w.max) toggleMax(w); const W = innerWidth, H = innerHeight - 24 - settings.dockSize - 28;
+    if (side === 'center') Object.assign(w.el.style, { width: Math.min(W * .6, 900) + 'px', height: H * .8 + 'px', left: W * .2 + 'px', top: H * .1 + 'px' });
+    else Object.assign(w.el.style, { left: side === 'left' ? '0px' : (W / 2) + 'px', top: '0px', width: (W / 2) + 'px', height: H + 'px' });
+    focus(w);
+  }
+  function openMC() {
+    closeOverlays(); const mc = $('#mc'), ws = [...wins.values()];
+    mc.innerHTML = `<div class="mc-bar">Desktop 1</div><div class="mc-grid">${ws.length ? ws.map(w => `<div class="mc-c" data-w="${w.id}"><div class="mc-t">${escH(w.title)}</div><div class="mc-p"><div class="ic ${APPS[w.app].cls}">${iconInner(w.app)}</div></div><button class="mc-x" data-x="${w.id}" title="Close">✕</button></div>`).join('') : '<div class="mc-e">No open windows</div>'}</div>`;
+    mc.classList.remove('hidden');
+  }
+  $('#mc').addEventListener('click', e => {
+    const x = e.target.closest('[data-x]'); if (x) { close(x.dataset.x); return openMC(); }
+    const c = e.target.closest('[data-w]'); $('#mc').classList.add('hidden'); if (c) { const w = wins.get(c.dataset.w); w && focus(w); }
+  });
+  const sw = { open: false, idx: 0, list: [] };
+  function stepSwitcher(dir) {
+    if (!sw.open) { sw.list = [...running]; sw.idx = sw.list.indexOf(front); if (sw.idx < 0) sw.idx = 0; sw.open = true; }
+    sw.idx = (sw.idx + dir + sw.list.length) % sw.list.length;
+    $('#sw').innerHTML = sw.list.map((id, i) => `<div class="sw-i ${i === sw.idx ? 'on' : ''}"><div class="ic ${appOf(id).cls}">${iconInner(id)}</div><span>${appOf(id).name}</span></div>`).join(''); $('#sw').classList.remove('hidden');
+  }
+  function commitSwitcher() { if (!sw.open) return; sw.open = false; $('#sw').classList.add('hidden'); const id = sw.list[sw.idx]; if (id) launch(id); }
+  function quickLook(title, html) { $('#ql').innerHTML = `<div class="ql-box"><div class="ql-t">${escH(title)}<button data-q>✕</button></div><div class="ql-b">${html}</div></div>`; $('#ql').classList.remove('hidden'); }
+  $('#ql').addEventListener('click', e => { if (e.target.id === 'ql' || e.target.closest('[data-q]')) $('#ql').classList.add('hidden'); });
+
+  /* ---------- keyboard shortcuts ( ⌘ = Alt on a Windows keyboard, or the real ⌘ key on a Mac ) ---------- */
+  const typing = e => /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+  const api = (fn, ...a) => { const w = fw(); return w && w.api && w.api[fn] ? (w.api[fn](...a), true) : false; };
+  const finderOn = () => front === 'finder' && fw() && fw().app === 'finder';
+  const SC = [
+    { g: 'General', sym: '⌃Space', keys: 'Ctrl+Space', desc: 'Spotlight search', sig: 'C', code: 'Space', run: () => $('#spot').classList.contains('hidden') ? openSpot() : closeOverlays() },
+    { g: 'General', sym: '⌘Space', keys: 'Alt+Space', desc: 'Spotlight search', sig: 'A', code: 'Space', hide: true, run: () => $('#spot').classList.contains('hidden') ? openSpot() : closeOverlays() },
+    { g: 'General', sym: 'F4', keys: 'F4', desc: 'Launchpad', sig: '', code: 'F4', run: toggleLaunchpad },
+    { g: 'General', sym: 'F3 / ⌃↑', keys: 'F3 or Ctrl+↑', desc: 'Mission Control (see all windows)', sig: '', code: 'F3', run: openMC },
+    { g: 'General', sym: '⌃↑', keys: 'Ctrl+↑', desc: 'Mission Control', sig: 'C', code: 'ArrowUp', hide: true, run: openMC },
+    { g: 'General', sym: '⌘Tab', keys: 'Alt+J (hold Alt, tap J)', desc: 'Switch between apps', sig: 'A', code: 'KeyJ', hide: true, run: () => stepSwitcher(1) },
+    { g: 'General', sym: '⌥⌘⎋', keys: 'Ctrl+Alt+Esc', desc: 'Force Quit (Activity Monitor)', sig: 'CA', code: 'Escape', run: () => open('activity') },
+    { g: 'General', sym: '⌃⌘Q', keys: 'Ctrl+Alt+L', desc: 'Lock screen', sig: 'CA', code: 'KeyL', run: () => $('#lock').classList.remove('up') },
+    { g: 'General', sym: '⌥⌘D', keys: 'Ctrl+Alt+D', desc: 'Show / hide the Dock', sig: 'CA', code: 'KeyD', run: () => set({ hide: !settings.hide }) },
+    { g: 'App', sym: '⌘N', keys: 'Alt+N', desc: 'New window (or new note in Notes)', sig: 'A', code: 'KeyN', run: () => { if (!api('new')) open(front); } },
+    { g: 'App', sym: '⌘W', keys: 'Alt+W', desc: 'Close window', sig: 'A', code: 'KeyW', run: () => focused && close(focused) },
+    { g: 'App', sym: '⌘M', keys: 'Alt+M', desc: 'Minimize window', sig: 'A', code: 'KeyM', run: () => fw() && minimize(fw()) },
+    { g: 'App', sym: '⇧⌘M', keys: 'Alt+Shift+M', desc: 'Minimize all windows', sig: 'AS', code: 'KeyM', run: () => [...wins.values()].forEach(minimize) },
+    { g: 'App', sym: '⌘H', keys: 'Alt+H', desc: 'Hide the current app', sig: 'A', code: 'KeyH', run: () => [...wins.values()].filter(x => x.app === front).forEach(minimize) },
+    { g: 'App', sym: '⌘Q', keys: 'Alt+Q', desc: 'Quit the current app', sig: 'A', code: 'KeyQ', run: () => quit(front) },
+    { g: 'App', sym: '⌘,', keys: 'Alt+,', desc: 'Open System Settings', sig: 'A', code: 'Comma', run: () => open('settings') },
+    { g: 'App', sym: '⌘`', keys: 'Alt+`', desc: 'Cycle windows of the same app', sig: 'A', code: 'Backquote', run: () => { const l = [...wins.values()].filter(x => x.app === front); if (l.length > 1) { const i = l.findIndex(x => x.id === focused); focus(l[(i + 1) % l.length]); } } },
+    { g: 'Windows', sym: '⌃⌘F', keys: 'Ctrl+Alt+F', desc: 'Zoom window (full size)', sig: 'CA', code: 'KeyF', run: () => fw() && toggleMax(fw()) },
+    { g: 'Windows', sym: '⌃⌘←', keys: 'Ctrl+Alt+←', desc: 'Move window to the left half', sig: 'CA', code: 'ArrowLeft', run: () => fw() && snap(fw(), 'left') },
+    { g: 'Windows', sym: '⌃⌘→', keys: 'Ctrl+Alt+→', desc: 'Move window to the right half', sig: 'CA', code: 'ArrowRight', run: () => fw() && snap(fw(), 'right') },
+    { g: 'Windows', sym: '⌃⌘C', keys: 'Ctrl+Alt+C', desc: 'Center the window', sig: 'CA', code: 'KeyC', run: () => fw() && snap(fw(), 'center') },
+    { g: 'Finder', sym: '⇧⌘N', keys: 'Alt+Shift+N', desc: 'New folder', sig: 'AS', code: 'KeyN', when: finderOn, run: () => api('newFolder') },
+    { g: 'Finder', sym: '⌘⌫', keys: 'Alt+Backspace', desc: 'Move to Trash', sig: 'A', code: 'Backspace', when: finderOn, run: () => api('trash') },
+    { g: 'Finder', sym: 'Space', keys: 'Space', desc: 'Quick Look the selected file', sig: '', code: 'Space', when: finderOn, noType: true, run: () => api('quicklook') },
+    { g: 'Finder', sym: '⌘1 / ⌘2', keys: 'Alt+1 / Alt+2', desc: 'View as icons / as list', sig: 'A', code: 'Digit1', when: finderOn, run: () => api('view', 'icons') },
+    { g: 'Finder', sym: '⌘2', keys: 'Alt+2', desc: 'View as list', sig: 'A', code: 'Digit2', hide: true, when: finderOn, run: () => api('view', 'list') },
+    { g: 'Finder', sym: '⌘[ / ⌘]', keys: 'Alt+[ / Alt+]', desc: 'Back / forward', sig: 'A', code: 'BracketLeft', when: finderOn, run: () => api('back') },
+    { g: 'Finder', sym: '⌘]', keys: 'Alt+]', desc: 'Forward', sig: 'A', code: 'BracketRight', hide: true, when: finderOn, run: () => api('fwd') },
+    { g: 'Finder', sym: '⌘↑', keys: 'Alt+↑', desc: 'Go to the enclosing folder', sig: 'A', code: 'ArrowUp', when: finderOn, run: () => api('up') },
+    { g: 'Finder', sym: '⌘O', keys: 'Alt+O', desc: 'Open the selected item', sig: 'A', code: 'KeyO', when: finderOn, run: () => api('open') },
+    { g: 'Finder', sym: '⇧⌘D', keys: 'Alt+Shift+D', desc: 'Duplicate', sig: 'AS', code: 'KeyD', when: finderOn, run: () => api('duplicate') },
+    { g: 'Finder', sym: '⇧⌘F', keys: 'Alt+Shift+F', desc: 'Search in Finder', sig: 'AS', code: 'KeyF', when: finderOn, run: () => api('search') },
+    { g: 'Finder', sym: '⏎', keys: 'Enter', desc: 'Rename the selected item', sig: '', code: 'Enter', hide: true, when: () => false, run: () => {} },
+    { g: 'Safari', sym: '⌘L', keys: 'Alt+L', desc: 'Go to the address bar', sig: 'A', code: 'KeyL', when: () => front === 'safari', run: () => api('focus') },
+    { g: 'Safari', sym: '⌘R', keys: 'Alt+R', desc: 'Reload the page', sig: 'A', code: 'KeyR', when: () => front === 'safari', run: () => api('reload') },
+    { g: 'Safari', sym: '⌘[ / ⌘]', keys: 'Alt+[ / Alt+]', desc: 'Back / forward', sig: 'A', code: 'BracketLeft', when: () => front === 'safari', run: () => api('back') },
+    { g: 'Safari', sym: '⌘]', keys: 'Alt+]', desc: 'Forward', sig: 'A', code: 'BracketRight', hide: true, when: () => front === 'safari', run: () => api('fwd') },
+    { g: 'TextEdit', sym: '⌘S', keys: 'Alt+S (or Ctrl+S)', desc: 'Save the document', sig: 'A', code: 'KeyS', when: () => front === 'textedit', run: () => api('save') },
+    { g: 'Calculator', sym: '0–9 + − × ÷ ⏎', keys: 'type on the keyboard', desc: 'Calculate with the keyboard', sig: '', code: 'None', when: () => false, run: () => {} }
+  ];
+  document.addEventListener('keydown', e => {
+    if (!$('#lock').classList.contains('up')) return;
+    if ((e.altKey && !e.ctrlKey && e.code === 'KeyJ') || (e.metaKey && e.code === 'Tab')) { e.preventDefault(); return stepSwitcher(e.shiftKey ? -1 : 1); }
+    const sig = (e.ctrlKey ? 'C' : '') + ((e.altKey || e.metaKey) ? 'A' : '') + (e.shiftKey ? 'S' : '');
+    const s = SC.find(x => x.code === e.code && x.sig === sig && (!x.when || x.when()));
+    if (s && !(s.noType && typing(e))) { e.preventDefault(); s.run(e); }
+  });
+  document.addEventListener('keyup', e => { if (sw.open && (e.key === 'Alt' || e.key === 'Meta')) commitSwitcher(); });
+
   function closeOverlays() {
     $('#menu').classList.add('hidden'); menuOpenFor = null; $$('.mb-btn').forEach(b => b.classList.remove('open'));
-    ['#cc', '#nc', '#launchpad', '#spot', '#ctx'].forEach(s => $(s).classList.add('hidden'));
+    ['#cc', '#nc', '#launchpad', '#spot', '#ctx', '#mc', '#ql'].forEach(s => $(s).classList.add('hidden'));
   }
   document.addEventListener('pointerdown', e => { if (!e.target.closest('#menu,#menubar,#cc,#ncPanel,#ctx,#launchpad,#spot,#dock')) closeOverlays(); });
 
@@ -293,13 +373,11 @@ const OS = (() => {
   $('.l-foot').addEventListener('click', e => { const a = e.target.dataset.pw; if (a === 'restart') location.reload(); if (a === 'shutdown' || a === 'sleep') $('#off').classList.remove('hidden'); if (a === 'home') location.href = '../../index.html'; });
   $('#powerOn').onclick = () => $('#off').classList.add('hidden');
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeOverlays();
-    if ((e.ctrlKey || e.metaKey) && e.code === 'Space') { e.preventDefault(); $('#spot').classList.contains('hidden') ? openSpot() : closeOverlays(); }
-    if (e.key === 'F4') { e.preventDefault(); toggleLaunchpad(); }
+    if (e.key === 'Escape') { closeOverlays(); $('#sw').classList.add('hidden'); sw.open = false; }
   });
 
   /* ---------- boot ---------- */
   apply(); renderDock(); renderMenubar(); refreshDesktop(); tick(); setInterval(tick, 1000);
   setTimeout(() => $('#lPass').focus(), 100);
-  return { open, close, quit, notify, showCtx, iconInner, refreshDesktop, toggleNight, sys, runningApps: () => [...running], get settings() { return settings; }, set };
+  return { open, close, quit, notify, showCtx, quickLook, shortcuts: SC.map(({ g, sym, keys, desc, hide }) => ({ g, sym, keys, desc, hide })), iconInner, refreshDesktop, toggleNight, sys, runningApps: () => [...running], get settings() { return settings; }, set };
 })();
