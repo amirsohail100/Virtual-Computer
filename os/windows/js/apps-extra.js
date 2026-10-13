@@ -193,3 +193,20 @@ render(body, win) {
   };
   draw();
 }};
+
+/* ---------- Keyboard Shortcuts (cheat sheet) ---------- */
+APPS.shortcuts = { name: 'Keyboard Shortcuts', icon: '⌨️', w: 640, h: 540, single: true,
+render(body) {
+  const app = [
+    ['File Explorer', 'F2', 'Rename the selected item'], ['File Explorer', 'Delete', 'Move the selected item to the Recycle Bin'], ['File Explorer', 'Enter', 'Open the selected item'],
+    ['File Explorer', 'Ctrl+C / Ctrl+X / Ctrl+V', 'Copy, cut and paste'], ['File Explorer', 'Alt+N', 'Create a new folder'], ['File Explorer', 'Alt+Enter', 'Show Properties'],
+    ['File Explorer', 'F5', 'Refresh'], ['File Explorer', 'Backspace', 'Go back'], ['File Explorer', 'Right-click', 'New (Folder, Word, Excel, Text, Zip…), View, Sort by, Properties'],
+    ['Notepad', 'Ctrl+S', 'Save the file'], ['Calculator', '0-9 + - * / Enter', 'Type calculations with the keyboard'], ['Desktop', 'Right-click', 'New items, wallpaper, display settings'],
+    ['Anywhere', 'Esc', 'Close menus, Start and Task View'], ['Anywhere', 'Windows key', 'Open Start (if your browser receives the key)']
+  ];
+  const all = [...OS.shortcuts.map(s => ({ g: s.group, k: s.keys, d: s.desc + `  (real Windows: ${s.win})` })), ...app.map(a => ({ g: a[0], k: a[1], d: a[2] }))];
+  body.innerHTML = '<div class="sk"><div class="sk-h"><input placeholder="Search shortcuts"></div><div class="sk-b"></div></div><div style="display:none"></div>';
+  const list = body.querySelector('.sk-b'), inp = body.querySelector('input');
+  const draw = q => { let last = ''; list.innerHTML = '<div class="hint" style="opacity:.7;font-size:12px;padding:8px 0">Browsers cannot capture the Windows key, so here <b>Ctrl+Alt+key</b> works like <b>Win+key</b>.</div>' + all.filter(x => (x.g + x.k + x.d).toLowerCase().includes(q)).map(x => { const h = x.g !== last ? `<div class="sk-g">${x.g}</div>` : ''; last = x.g; return h + `<div class="sk-r"><span>${escH(x.d)}</span><span>${x.k.split(' / ').map(k => `<kbd>${escH(k)}</kbd>`).join('')}</span></div>`; }).join(''); };
+  inp.oninput = () => draw(inp.value.toLowerCase()); draw('');
+}};
