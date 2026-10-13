@@ -247,9 +247,6 @@ body:not(.dark) .qbtn{background:rgba(255,255,255,.75)}
 
 /* context menu */
 #ctx{position:absolute;z-index:9500;min-width:220px;background:var(--acrylic);backdrop-filter:blur(30px) saturate(1.5);border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:0 6px 24px rgba(0,0,0,.4);font-size:13px}
-#ctx div{display:flex;gap:12px;align-items:center;padding:8px 12px;border-radius:5px;cursor:default}
-#ctx div:hover{background:var(--hover)}
-#ctx .ci{width:18px;text-align:center}
 
 
 /* ================= v0.3 ================= */
@@ -365,3 +362,31 @@ body:not(.dark) .qbtn{background:rgba(255,255,255,.75)}
 
 .tc button{display:flex;align-items:center;justify-content:center}
 .tb-center{max-width:calc(100% - 440px);overflow:hidden}
+
+
+/* ===== v0.6: context menu with sub-menus, modal, task view, explorer extras ===== */
+#ctx{padding:4px;min-width:240px}
+#ctx .cm-i{position:relative;display:flex;align-items:center;gap:12px;padding:7px 10px;border-radius:5px;cursor:default;white-space:nowrap}
+#ctx .cm-i:hover{background:var(--hover)}
+#ctx .cm-i.dis{opacity:.4;pointer-events:none}
+.cm-ic{width:18px;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+.cm-l{flex:1}.cm-k{opacity:.6;font-size:12px;margin-left:24px}.cm-ar{opacity:.7;margin-left:6px}
+.cm-sub{display:none;position:absolute;left:calc(100% - 2px);top:-5px;min-width:260px;padding:4px;border-radius:8px;background:var(--acrylic);backdrop-filter:blur(30px) saturate(1.5);border:1px solid var(--border);box-shadow:0 6px 24px rgba(0,0,0,.4);z-index:2}
+#ctx .cm-i:hover>.cm-sub{display:block}
+#modal{position:absolute;inset:0;z-index:9700;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
+.md-box{width:min(460px,92vw);background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden;font-size:13px}
+.md-t{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 8px 14px;background:var(--surface2)}.md-x{width:30px;height:26px;border-radius:5px}.md-x:hover{background:#c42b1c;color:#fff}
+.md-b{padding:16px}.md-f{display:flex;justify-content:flex-end;gap:8px;padding:12px 14px;background:var(--surface2)}
+.run{display:flex;gap:14px;align-items:center;margin-bottom:16px}.run span{font-size:32px}.run-row{display:flex;align-items:center;gap:10px}.run-row input{flex:1;padding:6px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none}
+.props{width:100%;border-collapse:collapse}.props td{padding:6px 4px;border-bottom:1px solid var(--border);vertical-align:top}.props td:first-child{width:110px;opacity:.7}
+#taskview{position:absolute;inset:0 0 48px 0;z-index:5800;background:rgba(8,12,28,.6);backdrop-filter:blur(26px);padding:34px;overflow:auto;color:#fff}
+.tv-h{font-size:20px;margin-bottom:20px}.tv-g{display:flex;flex-wrap:wrap;gap:18px}.tv-e{opacity:.7}
+.tv-c{position:relative;width:240px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);overflow:hidden;cursor:default}.tv-c:hover{border-color:#6cb8ff;background:rgba(255,255,255,.2)}
+.tv-t{padding:8px 10px;font-size:12.5px;background:rgba(0,0,0,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:30px}.tv-p{height:130px;display:flex;align-items:center;justify-content:center;font-size:54px}
+.tv-x{position:absolute;top:4px;right:6px;width:22px;height:22px;border-radius:4px;color:#fff}.tv-x:hover{background:#c42b1c}
+.fx-ren{width:100%;min-width:0;background:var(--surface);color:var(--text);border:1px solid var(--accent);outline:none;padding:1px 4px;font:inherit;font-size:12px;border-radius:3px;text-align:center}
+.fx-tbl .fx-ren{text-align:left;width:70%}
+.dicon .em svg{display:block;margin:0 auto}
+.sk{display:flex;flex-direction:column;height:100%}.sk-h{padding:10px 14px;background:var(--surface2)}.sk-h input{width:100%;padding:6px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none}
+.sk-b{flex:1;overflow:auto;padding:6px 16px 16px}.sk-g{font-weight:600;margin:14px 0 6px;font-size:13px}.sk-r{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+kbd{display:inline-block;padding:2px 7px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);font:12px Consolas,monospace;margin-left:4px}
