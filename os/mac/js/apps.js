@@ -155,7 +155,10 @@ render(body, win, arg) {
   const newFolder = () => { if (!isDir()) return; const n = uniq(FS.get(path), 'untitled folder'); FS.set(path, n, {}); sel = n; draw(); };
   const toTrash = () => { if (sel && isDir()) { FS.del(path, sel); sel = null; draw(); } };
   const rename = () => { if (!sel || !isDir()) return; const d = FS.get(path), n = prompt('Rename:', sel); if (n && n !== sel && !(n in d)) { d[n] = d[sel]; delete d[sel]; FS.save(); sel = n; draw(); } };
-  win.api = { newFolder };
+  const dup = () => { if (!sel || !isDir()) return; const d = FS.get(path); let n = sel + ' copy', i = 2; while (n in d) n = sel + ' copy ' + i++; d[n] = JSON.parse(JSON.stringify(d[sel])); FS.save(); sel = n; draw(); };
+  const quick = () => { if (!sel || !isDir()) return; const v = FS.get(path)[sel]; if (v === undefined) return; OS.quickLook(sel, typeof v === 'object' ? `<div style="text-align:center;padding:30px">${MI.folder(96)}<h3>${escH(sel)}</h3><p>${Object.keys(v).length} items</p></div>` : `<pre>${escH(v) || '(empty)'}</pre>`); };
+  win.api = { newFolder, trash: toTrash, duplicate: dup, quicklook: quick, rename, view: v => { view = v; draw(); }, back: () => { if (hi > 0) { hi--; go(hist[hi], true); } }, fwd: () => { if (hi < hist.length - 1) { hi++; go(hist[hi], true); } },
+    up: () => { if (path.length > 1 && !isSp()) go(path.slice(0, -1)); }, open: () => { if (sel && isDir()) openItem(path, sel); }, search: () => sin.focus() };
   body.addEventListener('click', e => {
     const a = e.target.closest('[data-a]'), v = e.target.closest('[data-v]'), p = e.target.closest('[data-p]'), it = e.target.closest('.fd-it');
     if (a && !a.disabled) {
@@ -182,11 +185,11 @@ render(body, win, arg) {
     e.preventDefault(); e.stopPropagation();
     const it = e.target.closest('.fd-it');
     if (it && it.dataset.t !== undefined) { sel = it.dataset.n; drawContent(); const i = +it.dataset.t; return OS.showCtx(e.clientX, e.clientY, [['Put Back', () => { const x = FS.trash()[i], d = FS.get(x.path); if (d) { d[x.name in d ? x.name + ' copy' : x.name] = x.val; FS.trash().splice(i, 1); FS.save(); draw(); } }], ['Delete Immediately', () => { FS.trash().splice(i, 1); FS.save(); draw(); }]]); }
-    if (it && isDir()) { sel = it.dataset.n; cont.querySelectorAll('.fd-it.sel').forEach(x => x.classList.remove('sel')); it.classList.add('sel'); return OS.showCtx(e.clientX, e.clientY, [['Open', () => openItem(path, sel)], ['Rename', rename], '-', ['Move to Trash', toTrash]]); }
+    if (it && isDir()) { sel = it.dataset.n; cont.querySelectorAll('.fd-it.sel').forEach(x => x.classList.remove('sel')); it.classList.add('sel'); return OS.showCtx(e.clientX, e.clientY, [['Open', () => openItem(path, sel)], ['Quick Look', quick], '-', ['Duplicate', dup], ['Rename', rename], '-', ['Move to Trash', toTrash]]); }
     if (isDir()) OS.showCtx(e.clientX, e.clientY, [['New Folder', newFolder], ['Switch view', () => { view = view === 'icons' ? 'list' : 'icons'; draw(); }]]);
   });
   sin.addEventListener('input', () => { q = sin.value.trim(); sel = null; drawContent(); });
-  body.addEventListener('keydown', e => { if (e.target === sin) return; if (e.key === 'Delete' || e.key === 'Backspace') toTrash(); if (e.key === 'Enter') rename(); });
+  body.addEventListener('keydown', e => { if (e.target === sin || e.altKey) return; if (e.key === 'Delete' || e.key === 'Backspace') toTrash(); if (e.key === 'Enter') rename(); });
   body.tabIndex = 0;
   draw();
 }});
@@ -200,6 +203,7 @@ render(body, win, arg) {
   ta.value = (arg && arg.content) || '';
   const t = () => { win.setTitle(name || 'Untitled'); fn.textContent = name || 'Untitled'; };
   const save = () => { if (!name) { name = prompt('Save as:', 'Untitled.txt'); if (!name) return; path = [...HOME, 'Documents']; } FS.set(path, name, ta.value); RECENT.add(name, path); t(); OS.refreshDesktop(); OS.notify('TextEdit', 'Document saved', name); };
+  win.api = { save };
   ta.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); } });
   body.querySelector('.bar').onclick = e => { const a = e.target.dataset.a; if (a === 'save') save(); if (a === 'new') { name = path = null; ta.value = ''; t(); } };
   t(); ta.focus();
@@ -216,10 +220,12 @@ render(body, win) {
     body.innerHTML = `<div class="nt"><div class="nt-side">${notes.map(x => `<div class="nt-it ${x.id === cur ? 'on' : ''}" data-id="${x.id}"><b>${escH(title(x))}</b><small>${new Date(x.t).toLocaleDateString()}</small></div>`).join('') || '<div class="empty">No notes</div>'}</div>
       <div class="nt-ed"><div class="bar"><button class="btn" data-a="new">✎ New note</button><button class="btn" data-a="del" ${n ? '' : 'disabled'}>🗑 Delete</button></div><textarea ${n ? '' : 'disabled'} placeholder="Start typing…">${n ? escH(n.text) : ''}</textarea></div></div>`;
   };
+  const newNote = () => { const n = { id: Date.now(), text: '', t: Date.now() }; notes.unshift(n); cur = n.id; save(); draw(); body.querySelector('textarea').focus(); };
+  win.api = { new: newNote };
   body.onclick = e => {
     const it = e.target.closest('[data-id]'), a = e.target.dataset.a;
     if (it) { cur = +it.dataset.id; draw(); }
-    if (a === 'new') { const n = { id: Date.now(), text: '', t: Date.now() }; notes.unshift(n); cur = n.id; save(); draw(); body.querySelector('textarea').focus(); }
+    if (a === 'new') newNote();
     if (a === 'del') { notes = notes.filter(x => x.id !== cur); cur = notes[0] && notes[0].id; save(); draw(); }
   };
   body.oninput = e => { if (e.target.tagName !== 'TEXTAREA') return; const n = notes.find(x => x.id === cur); if (!n) return; n.text = e.target.value; n.t = Date.now(); save(); const b = body.querySelector('.nt-it.on b'); if (b) b.textContent = title(n); };
@@ -243,6 +249,8 @@ render(body) {
     else { if (op !== null && !fresh) { acc = f(acc, parseFloat(cur), op); cur = fm(acc); } else acc = parseFloat(cur); op = k; fresh = true; }
     d.textContent = cur; d.style.fontSize = cur.length > 9 ? '30px' : '44px';
   };
+  body.tabIndex = 0; body.addEventListener('keydown', e => { if (e.altKey || e.ctrlKey) return; const m = { '-': '−', '*': '×', '/': '÷', Enter: '=', Escape: 'AC', Backspace: 'AC', c: 'AC', C: 'AC' }, k = m[e.key] || e.key; const b = [...body.querySelectorAll('.mc-k button')].find(x => x.textContent === k); if (b) { e.preventDefault(); b.click(); } });
+  body.focus();
 }});
 
 /* ---------- Safari ---------- */
@@ -258,7 +266,7 @@ render(body, win, arg) {
   };
   inp.onkeydown = e => { if (e.key === 'Enter') load(inp.value.trim()); };
   body.querySelector('.sf-bar').onclick = e => { const a = e.target.dataset.a; if (a === 'b' && i > 0) load(h[--i], false); if (a === 'f' && i < h.length - 1) load(h[++i], false); if (a === 'r') fr.src = fr.src; };
-  win.api = { open: u => load(u) }; load('');
+  win.api = { open: u => load(u), focus: () => inp.focus(), reload: () => { fr.src = fr.src; }, back: () => { if (i > 0) load(h[--i], false); }, fwd: () => { if (i < h.length - 1) load(h[++i], false); } }; load('');
   if (arg && arg.url) load(arg.url);
 }});
 
@@ -432,4 +440,150 @@ render(body, win) {
   body.oninput = e => { if (e.target.id === 'dsz') OS.set({ dockSize: +e.target.value }); if (e.target.id === 'sbr') OS.set({ brightness: +e.target.value }); };
   win.api = { pane: p => { pane = p; draw(); } };
   draw();
+}});
+
+
+/* ---------- Music (generated melodies — no files needed) ---------- */
+mk('music', { name: 'Music', cls: 'i-music', icon: '🎵', w: 640, h: 420, single: true,
+render(body, win) {
+  const TR = [
+    { t: 'Morning Dew', a: 'Virtual Band', bpm: 92, c: '#ff9a9e,#fad0c4', n: [[60, 1], [64, 1], [67, 1], [72, 2], [71, 1], [67, 1], [64, 1], [60, 2], [62, 1], [65, 1], [69, 1], [74, 2], [72, 1], [69, 1], [65, 1], [62, 2]] },
+    { t: 'Night Drive', a: 'Synth City', bpm: 112, c: '#667eea,#764ba2', n: [[57, .5], [60, .5], [64, .5], [69, .5], [67, .5], [64, .5], [60, .5], [57, .5], [55, .5], [59, .5], [62, .5], [67, .5], [65, .5], [62, .5], [59, .5], [55, .5]] },
+    { t: 'Lo-fi Loop', a: 'Chill Co.', bpm: 76, c: '#a1c4fd,#c2e9fb', n: [[65, 1.5], [69, .5], [72, 1], [69, 1], [67, 1.5], [64, .5], [60, 1], [64, 1]] },
+    { t: 'Ocean Breeze', a: 'Waves', bpm: 84, c: '#43e97b,#38f9d7', n: [[62, 2], [66, 1], [69, 1], [74, 2], [73, 1], [69, 1], [66, 2], [62, 2]] }];
+  let ac = null, master = null, cur = 0, playing = false, dur = 1, t0 = 0, vol = OS.sys.vol / 100;
+  const stop = () => { if (ac) { try { ac.close(); } catch (e) {} ac = null; } playing = false; };
+  function start(i) {
+    stop(); cur = (i + TR.length) % TR.length; ac = new (window.AudioContext || window.webkitAudioContext)(); const tr = TR[cur], beat = 60 / tr.bpm;
+    master = ac.createGain(); master.gain.value = .3 * vol; master.connect(ac.destination); let t = ac.currentTime + .05; t0 = t;
+    for (let r = 0; r < 6; r++) for (const [m, b] of tr.n) {
+      const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = 440 * Math.pow(2, (m - 69) / 12);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.6, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + b * beat * .95); o.connect(g); g.connect(master); o.start(t); o.stop(t + b * beat); t += b * beat;
+    }
+    dur = t - t0; playing = true; draw();
+  }
+  const draw = () => {
+    const tr = TR[cur];
+    body.innerHTML = `<div class="mu"><div class="mu-l">${TR.map((x, i) => `<div class="mu-t ${i === cur ? 'on' : ''}" data-i="${i}"><b>${x.t}</b><small>${x.a}</small></div>`).join('')}</div>
+      <div class="mu-r"><div class="mu-art" style="background:linear-gradient(135deg,${tr.c})">🎵</div><h3>${tr.t}</h3><div class="hint">${tr.a}</div><input type="range" id="mup" min="0" max="1000" value="0" disabled>
+      <div class="mu-c"><button data-a="prev">⏮</button><button data-a="play" class="big">${playing ? '⏸' : '▶'}</button><button data-a="next">⏭</button></div><div class="cc-sl">🔊<input type="range" id="muv" min="0" max="100" value="${Math.round(vol * 100)}"></div></div></div>`;
+  };
+  body.onclick = e => {
+    const i = e.target.closest('[data-i]'), a = e.target.dataset.a;
+    if (i) start(+i.dataset.i);
+    if (a === 'play') { if (!ac) start(cur); else if (playing) { ac.suspend(); playing = false; draw(); } else { ac.resume(); playing = true; draw(); } }
+    if (a === 'next') start(cur + 1); if (a === 'prev') start(cur - 1);
+  };
+  body.oninput = e => { if (e.target.id === 'muv') { vol = e.target.value / 100; if (master) master.gain.value = .3 * vol; } };
+  const iv = setInterval(() => { if (!ac) return; const el = ac.currentTime - t0; const p = body.querySelector('#mup'); if (p) p.value = Math.min(1000, el / dur * 1000); if (el >= dur) start(cur + 1); }, 300);
+  win.onclose = () => { clearInterval(iv); stop(); }; draw();
+}});
+
+/* ---------- Messages (demo chat with auto replies) ---------- */
+mk('messages', { name: 'Messages', cls: 'i-messages', icon: '💬', w: 700, h: 480, single: true,
+render(body) {
+  const people = [{ id: 'priya', n: 'Priya', e: '👩' }, { id: 'rahul', n: 'Rahul', e: '👨' }, { id: 'bot', n: 'Assistant', e: '🤖' }];
+  const chats = jget('m_msgs1', {}); let cur = 'priya';
+  const reply = t => { t = t.toLowerCase(); if (/hi|hello|hey|namaste/.test(t)) return 'Hello! 👋 Kaise ho?'; if (/time/.test(t)) return 'Abhi ' + new Date().toLocaleTimeString() + ' baj rahe hain.'; if (/date|day/.test(t)) return 'Aaj ' + new Date().toDateString() + ' hai.'; if (/joke/.test(t)) return 'Programmer ko chai kyu pasand hai? Kyunki usme "Java" hota hai ☕'; if (/thank/.test(t)) return 'Anytime! 😊'; if (/how are you|kaise/.test(t)) return 'Main badhiya! Aap batao?'; return ['Interesting! 🙂', 'Achha, phir?', 'Haan bilkul.', 'Ye to mast hai!', 'Hmm, sochne wali baat hai 🤔'][Math.floor(Math.random() * 5)]; };
+  const draw = () => {
+    const m = chats[cur] || [{ me: false, t: 'Hi! This is a demo chat — messages stay in your browser.' }];
+    body.innerHTML = `<div class="ms"><div class="ms-l">${people.map(p => `<div class="ms-p ${p.id === cur ? 'on' : ''}" data-p="${p.id}"><span>${p.e}</span><b>${p.n}</b></div>`).join('')}</div><div class="ms-r"><div class="ms-h">To: <b>${people.find(p => p.id === cur).n}</b></div><div class="ms-b">${m.map(x => `<div class="ms-m ${x.me ? 'me' : ''}">${escH(x.t)}</div>`).join('')}</div><div class="ms-i"><input placeholder="iMessage" autocomplete="off"></div></div></div>`;
+    const b = body.querySelector('.ms-b'); b.scrollTop = b.scrollHeight;
+  };
+  body.onclick = e => { const p = e.target.closest('[data-p]'); if (p) { cur = p.dataset.p; draw(); } };
+  body.onkeydown = e => {
+    if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return; const v = e.target.value.trim(); if (!v) return; const id = cur;
+    (chats[id] = chats[id] || [{ me: false, t: 'Hi! This is a demo chat — messages stay in your browser.' }]).push({ me: true, t: v }); jset('m_msgs1', chats); draw(); body.querySelector('input').focus();
+    setTimeout(() => { chats[id].push({ me: false, t: reply(v) }); jset('m_msgs1', chats); if (body.isConnected && cur === id) { draw(); body.querySelector('input').focus(); } OS.notify('Messages', people.find(p => p.id === id).n, chats[id][chats[id].length - 1].t); }, 900);
+  };
+  draw();
+}});
+
+/* ---------- Mail ---------- */
+mk('mail', { name: 'Mail', cls: 'i-mail', icon: '✉️', w: 860, h: 520,
+render(body) {
+  const boxes = { Inbox: [{ f: 'Virtual macOS Team', s: 'Welcome to your new Mac 🎉', t: 'Hi Student,\n\nWelcome to macOS (Virtual). This is a demo mailbox — no real emails are sent or received.\n\nHave fun exploring!' }, { f: 'App Store', s: 'New apps this week', t: 'Open the App Store from the Dock to browse demo apps.' }, { f: 'Learning Club', s: 'Your HTML/CSS/JS practice task', t: 'Tip: open os/mac/js/apps.js and add your own app with mk(...). It shows up in Launchpad automatically.' }], Sent: [], Drafts: [] };
+  let box = 'Inbox', cur = 0;
+  const draw = () => { const l = boxes[box]; body.innerHTML = `<div class="ml"><div class="ml-s"><button class="btn pri" data-c>✏️ New Message</button>${Object.keys(boxes).map(b => `<div class="${b === box ? 'on' : ''}" data-b="${b}">${b} <small>${boxes[b].length || ''}</small></div>`).join('')}</div>
+    <div class="ml-l">${l.length ? l.map((m, i) => `<div class="ml-i ${i === cur ? 'on' : ''}" data-i="${i}"><b>${escH(m.f)}</b><div>${escH(m.s)}</div></div>`).join('') : '<div class="empty">No messages</div>'}</div><div class="ml-r">${l[cur] ? `<h3>${escH(l[cur].s)}</h3><div class="hint">${escH(l[cur].f)}</div><pre>${escH(l[cur].t)}</pre>` : ''}</div></div>`; };
+  body.onclick = e => {
+    const b = e.target.closest('[data-b]'), i = e.target.closest('[data-i]'); if (b) { box = b.dataset.b; cur = 0; } if (i) cur = +i.dataset.i;
+    if (e.target.dataset.c !== undefined) { const to = prompt('To:', 'friend@example.com'); if (!to) return; const sub = prompt('Subject:', 'Hello'); if (sub === null) return; const txt = prompt('Message:', 'Hi!'); if (txt === null) return; boxes.Sent.unshift({ f: 'To: ' + to, s: sub, t: txt }); box = 'Sent'; cur = 0; OS.notify('Mail', 'Message sent', 'Demo only — nothing was really sent.'); }
+    draw();
+  };
+  draw();
+}});
+
+/* ---------- Maps (OpenStreetMap, needs internet) ---------- */
+mk('maps', { name: 'Maps', cls: 'i-maps', icon: '🗺️', w: 860, h: 540, single: true,
+render(body) {
+  body.innerHTML = `<div class="sf"><div class="sf-bar"><input placeholder="Search for a place (needs internet)"><button data-go>🔍</button></div><iframe></iframe></div>`;
+  const fr = body.querySelector('iframe'), inp = body.querySelector('input');
+  const show = (lat, lon, d = .05) => { fr.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d},${lat - d / 1.6},${lon + d},${lat + d / 1.6}&layer=mapnik&marker=${lat},${lon}`; };
+  const find = async () => { const q = inp.value.trim(); if (!q) return; try { const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q)); const j = await r.json(); if (j[0]) show(+j[0].lat, +j[0].lon); else OS.notify('Maps', 'Not found', 'No place found for “' + q + '”.'); } catch (e) { OS.notify('Maps', 'Offline', 'Maps needs an internet connection.'); } };
+  inp.onkeydown = e => { if (e.key === 'Enter') find(); }; body.querySelector('[data-go]').onclick = find; show(28.6139, 77.209);
+}});
+
+/* ---------- Contacts ---------- */
+mk('contacts', { name: 'Contacts', cls: 'i-contacts', icon: '👤', w: 620, h: 420, single: true,
+render(body) {
+  let list = jget('m_contacts1', [{ n: 'Priya Sharma', p: '+91 98765 43210', e: 'priya@example.com' }, { n: 'Rahul Verma', p: '+91 91234 56789', e: 'rahul@example.com' }]), cur = 0;
+  const save = () => jset('m_contacts1', list);
+  const draw = () => { const c = list[cur]; body.innerHTML = `<div class="ct"><div class="ct-l"><div class="ct-b"><button class="btn" data-add>＋</button></div>${list.map((x, i) => `<div class="ct-i ${i === cur ? 'on' : ''}" data-i="${i}">${escH(x.n)}</div>`).join('')}</div><div class="ct-r">${c ? `<div class="ct-av">${escH(c.n[0] || '?')}</div><h2>${escH(c.n)}</h2><div class="row"><span>mobile</span><b>${escH(c.p)}</b></div><div class="row"><span>email</span><b>${escH(c.e)}</b></div><br><button class="btn" data-del>Delete Contact</button>` : '<div class="empty">No contacts</div>'}</div></div>`; };
+  body.onclick = e => { const i = e.target.closest('[data-i]'); if (i) cur = +i.dataset.i;
+    if (e.target.dataset.add !== undefined) { const n = prompt('Name:'); if (!n) return; list.push({ n, p: prompt('Phone:', '') || '', e: prompt('Email:', '') || '' }); cur = list.length - 1; }
+    if (e.target.dataset.del !== undefined) { list.splice(cur, 1); cur = 0; } save(); draw(); };
+  draw();
+}});
+
+/* ---------- Reminders ---------- */
+mk('reminders', { name: 'Reminders', cls: 'i-reminders', icon: '☑️', w: 460, h: 440, single: true,
+render(body) {
+  let items = jget('m_rem1', [{ t: 'Try Spotlight (Ctrl+Space)', d: false }, { t: 'Open Launchpad (F4)', d: false }]);
+  const save = () => jset('m_rem1', items);
+  const draw = () => { body.innerHTML = `<div class="rm"><h2>Reminders <small>${items.filter(x => !x.d).length} to do</small></h2><div class="rm-a"><input placeholder="New reminder — press Return" autocomplete="off"></div>${items.map((x, i) => `<div class="rm-i ${x.d ? 'done' : ''}"><span class="rm-c" data-t="${i}">${x.d ? '✔' : ''}</span><span>${escH(x.t)}</span><button data-x="${i}">✕</button></div>`).join('') || '<div class="empty">All done 🎉</div>'}</div>`; };
+  body.onclick = e => { const d = e.target.dataset; if (d.t !== undefined) items[+d.t].d = !items[+d.t].d; if (d.x !== undefined) items.splice(+d.x, 1); save(); draw(); };
+  body.onkeydown = e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.value.trim()) { items.unshift({ t: e.target.value.trim(), d: false }); save(); draw(); body.querySelector('input').focus(); } };
+  draw();
+}});
+
+/* ---------- Stickies ---------- */
+mk('stickies', { name: 'Stickies', cls: 'i-stickies', icon: '🗒️', w: 260, h: 260, plain: true,
+render(body, win) {
+  const cols = ['#fff1a8', '#c8f7c5', '#ffd1e0', '#cfe8ff'], n = Math.floor(Math.random() * 4), k = 'm_stk_' + n;
+  body.innerHTML = `<textarea class="stk" style="background:${cols[n]}" placeholder="Take a note…"></textarea>`; const t = body.querySelector('textarea'); t.value = localStorage.getItem(k) || ''; t.oninput = () => { try { localStorage.setItem(k, t.value); } catch (e) {} }; t.focus();
+}});
+
+/* ---------- Preview (open images from your PC) ---------- */
+mk('preview', { name: 'Preview', cls: 'i-preview', icon: '🖼️', w: 760, h: 520,
+render(body, win) {
+  let url = null, zoom = 1, rot = 0;
+  const draw = () => { body.innerHTML = `<div class="pv"><div class="ph-bar"><button class="btn pri" data-o>Open…</button><span><button class="btn" data-z="-">－</button><button class="btn" data-z="+">＋</button><button class="btn" data-r>⟳ Rotate</button><button class="btn" data-w ${url ? '' : 'disabled'}>Set as Desktop Picture</button></span><input type="file" id="pvf" accept="image/*" hidden></div><div class="pv-v">${url ? `<img src="${url}" style="transform:scale(${zoom}) rotate(${rot}deg)">` : '<div class="empty">Open an image from your computer</div>'}</div></div>`; };
+  let file = null;
+  body.onclick = e => { const d = e.target.dataset;
+    if (d.o !== undefined) return body.querySelector('#pvf').click(); if (d.z) zoom = Math.max(.1, zoom + (d.z === '+' ? .2 : -.2)); if (d.r !== undefined) rot = (rot + 90) % 360;
+    if (d.w !== undefined && file) return addCustomWall(file, (id, err) => id ? (OS.set({ wall: id }), OS.notify('Preview', 'Desktop picture changed', file.name)) : OS.notify('Preview', 'Could not set picture', err));
+    draw(); };
+  body.onchange = e => { if (e.target.id === 'pvf' && e.target.files[0]) { file = e.target.files[0]; url = URL.createObjectURL(file); zoom = 1; rot = 0; win.setTitle(file.name); draw(); } };
+  draw();
+}});
+
+/* ---------- App Store (demo) ---------- */
+mk('appstore', { name: 'App Store', cls: 'i-appstore', icon: '🅰️', w: 820, h: 520, single: true,
+render(body) {
+  const items = [['🎵', 'Spotify', 'Music'], ['💬', 'WhatsApp', 'Social'], ['🎬', 'Netflix', 'Entertainment'], ['📝', 'Notion', 'Productivity'], ['🎮', 'Minecraft', 'Games'], ['🧑‍💻', 'Xcode', 'Developer Tools'], ['🎨', 'Figma', 'Design'], ['📹', 'Zoom', 'Business']];
+  const inst = jget('m_store1', []);
+  const draw = () => { body.innerHTML = `<div class="as"><div class="as-h"><h2>Discover</h2><p>Demo store — apps are simulated for learning.</p></div><div class="as-g">${items.map((a, i) => `<div class="as-c"><span>${a[0]}</span><b>${a[1]}</b><small>${a[2]}</small><button class="btn ${inst.includes(a[1]) ? '' : 'pri'}" data-i="${i}">${inst.includes(a[1]) ? 'Open' : 'GET'}</button></div>`).join('')}</div></div>`; };
+  body.onclick = e => { const i = e.target.dataset.i; if (i === undefined) return; const a = items[i]; if (inst.includes(a[1])) return OS.notify('App Store', a[1], 'This is a simulated app (demo).'); e.target.textContent = '…'; setTimeout(() => { inst.push(a[1]); jset('m_store1', inst); if (body.isConnected) draw(); OS.notify('App Store', a[1] + ' installed', 'Simulated install (demo).'); }, 1300); };
+  draw();
+}});
+
+/* ---------- Keyboard Shortcuts (cheat sheet) ---------- */
+mk('shortcuts', { name: 'Keyboard Shortcuts', cls: 'i-shortcuts', icon: '⌨️', w: 660, h: 560, single: true,
+render(body) {
+  const all = OS.shortcuts.filter(x => !x.hide);
+  body.innerHTML = '<div class="sk"><div class="sk-h"><input placeholder="Search shortcuts"></div><div class="sk-b"></div></div>';
+  const list = body.querySelector('.sk-b'), inp = body.querySelector('input');
+  const draw = q => { let last = ''; list.innerHTML = '<div class="hint" style="padding:8px 0">⌘ = <b>Alt</b> on a Windows keyboard (browsers keep Ctrl+W / Ctrl+Q / Ctrl+N for themselves). On a real Mac keyboard the ⌘ key works too.</div>' + all.filter(x => (x.g + x.sym + x.keys + x.desc).toLowerCase().includes(q)).map(x => { const h = x.g !== last ? `<div class="sk-g">${x.g}</div>` : ''; last = x.g; return h + `<div class="sk-r"><span>${escH(x.desc)}</span><span><kbd>${escH(x.sym)}</kbd> <small>${escH(x.keys)}</small></span></div>`; }).join(''); };
+  inp.oninput = () => draw(inp.value.toLowerCase()); draw('');
 }});
