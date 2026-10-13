@@ -22,9 +22,9 @@ header p{color:var(--muted);margin-top:10px;font-size:clamp(14px,2vw,17px)}
 .card.soon:hover{transform:translateY(-2px)}
 .prev{height:170px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);border-bottom:1px solid var(--border)}
 .info{padding:18px 20px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
-.info h2{font-size:20px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.info h2{font-size:18px;font-weight:600;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
 .info p{color:var(--muted);font-size:13.5px;line-height:1.45;flex:1}
-.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(80,220,140,.18);color:#6ff0a8;border:1px solid rgba(80,220,140,.35)}
+.badge{white-space:nowrap;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(80,220,140,.18);color:#6ff0a8;border:1px solid rgba(80,220,140,.35)}
 .soon .badge{background:rgba(255,200,80,.12);color:#ffd27a;border-color:rgba(255,200,80,.3)}
 .go{margin-top:6px;padding:10px 14px;border-radius:10px;font-weight:600;font-size:14px;text-align:center;background:linear-gradient(135deg,#2f8bff,#1a5cff);color:#fff;transition:filter .2s}
 .ready:hover .go{filter:brightness(1.15)}
@@ -51,6 +51,23 @@ header p{color:var(--muted);margin-top:10px;font-size:clamp(14px,2vw,17px)}
 .ios-p .island{position:absolute;top:5px;left:50%;width:26px;height:7px;margin-left:-13px;border-radius:6px;background:#000}
 .ios-p .home{position:absolute;bottom:4px;left:50%;width:30px;height:3px;margin-left:-15px;border-radius:2px;background:#fff}
 
+/* Windows XP preview */
+.xp-p{background:linear-gradient(180deg,#3a8ee6 0,#a3d0f7 55%)}
+.xp-p::before{content:"";position:absolute;left:-30%;right:-30%;bottom:10px;height:62%;border-radius:50% 50% 0 0/100% 100% 0 0;background:linear-gradient(180deg,#72c63e,#2f8a1e)}
+.xp-p .xwin{position:absolute;left:28px;top:14px;width:80px;height:54px;border-radius:4px 4px 0 0;background:#ece9d8;border:2px solid #0a54d6;border-top-width:9px}
+.xp-p .xbar{position:absolute;left:0;right:0;bottom:0;height:13px;background:linear-gradient(180deg,#3274e8,#1c4fc0)}
+.xp-p .xstart{position:absolute;left:0;bottom:0;width:38px;height:13px;border-radius:0 9px 9px 0;background:linear-gradient(180deg,#4cb83e,#2a8a22)}
+/* Ubuntu preview */
+.ub-p{background:linear-gradient(135deg,#5e2750 0,#e95420 140%)}
+.ub-p .utop{position:absolute;top:0;left:0;right:0;height:8px;background:rgba(0,0,0,.65)}
+.ub-p .udock{position:absolute;top:8px;bottom:0;left:0;width:17px;background:rgba(35,15,35,.72);display:flex;flex-direction:column;gap:5px;padding:6px 4px;align-items:center}
+.ub-p .udock i{width:9px;height:9px;border-radius:3px;background:#e95420}.ub-p .udock i:nth-child(2){background:#fff}.ub-p .udock i:nth-child(3){background:#7fd3ff}.ub-p .udock i:nth-child(4){background:#f5d33f}
+.ub-p .uwin{position:absolute;left:38px;top:22px;width:88px;height:56px;border-radius:5px;background:#3d3846;border:1px solid rgba(255,255,255,.22)}
+/* Kali Linux preview */
+.kl-p{background:linear-gradient(135deg,#0b0f1a,#1e2b4a)}
+.kl-p .kbar{position:absolute;top:0;left:0;right:0;height:8px;background:#080b12}
+.kl-p .kterm{position:absolute;left:18px;top:16px;right:18px;bottom:16px;border-radius:5px;background:#10131c;border:1px solid #367bf0;padding:7px 8px;font:7px/1.6 Consolas,Menlo,monospace;color:#9ac2ff;display:flex;flex-direction:column;overflow:hidden;white-space:nowrap}
+.kl-p .kterm i{font-style:normal}
 footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:44px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:12.5px}
 
 #toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,30px);opacity:0;padding:12px 20px;border-radius:12px;background:rgba(20,28,56,.95);border:1px solid var(--border);font-size:14px;pointer-events:none;transition:.3s;z-index:20;box-shadow:0 10px 40px rgba(0,0,0,.5)}
