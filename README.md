@@ -11,7 +11,7 @@ Home page pe user apna OS chunta hai, aur wahi khul jata hai.
 | Windows XP | 🕒 Coming soon |
 | Ubuntu Linux | 🕒 Coming soon |
 | Kali Linux | 🕒 Coming soon |
-| Android | 🕒 Coming soon |
+| Android | ✅ Available (basic) |
 | iPhone (iOS) | 🕒 Coming soon |
 
 > Ye project sirf **education aur learning** ke liye hai. Microsoft, Apple ya Google se koi sambandh nahi hai. Details `LICENSE` me.
@@ -19,8 +19,8 @@ Home page pe user apna OS chunta hai, aur wahi khul jata hai.
 ## Kaise chalayein
 1. Zip extract karo.
 2. Root ke `index.html` ko browser me kholo (home page).
-3. **Windows 11** ya **macOS** card pe click karo.
-4. Wapas aane ke liye: Windows me Start menu → power button → **Switch OS**. macOS me Apple menu (menu bar ka sabse left icon) → **Switch OS…**.
+3. **Windows 11**, **macOS** ya **Android** card pe click karo.
+4. Wapas aane ke liye: Windows me Start menu → power button → **Switch OS**. macOS me Apple menu (menu bar ka sabse left icon) → **Switch OS…**. Android me phone ke baayein taraf ka **Switch OS** button.
 
 Local server (optional): `python -m http.server 8000` → http://localhost:8000
 Online dalna ho to poora folder GitHub Pages / Netlify / Vercel pe upload karo.
@@ -41,12 +41,17 @@ os/
     js/explorer.js      File Explorer
     js/apps-extra.js    Mail, Calendar, Store, Photos, Clock, Camera, Weather, Recycle Bin
     assets/             bloom-dark, bloom-light, glow (wallpapers)
+  android/              Android phone (ready, basic)
+    index.html, css/style.css
+    js/main.js          phone frame, rotation, home, apps, recents, shade
+    js/apps.js          wallpapers aur 11 apps
+    assets/             bloom, aurora, dunes (wallpapers)
   mac/                  macOS (ready)
     index.html, css/style.css
     js/main.js          OS core: windows, menu bar, Dock, Launchpad, Spotlight, Control Center, Notification Center
     js/apps.js          wallpapers, file system, sab apps
     assets/             waves, hills, ribbons (wallpapers)
-  winxp/ ubuntu/ kali/ android/ iphone/   (aage banenge)
+  winxp/ ubuntu/ kali/ iphone/   (aage banenge)
 ```
 
 ## Naya OS kaise add karein
@@ -72,6 +77,15 @@ os/
 - Mission Control, app switcher, Quick Look, window snap (Window menu ya shortcuts), Dock me Messages/Mail/Maps/Music/Reminders/App Store pinned
 - Desktop pe right-click: New Folder, Change Desktop Background, Dark/Light mode
 - Files, notes, events aur settings browser ke `localStorage` me save hote hain
+
+## Android — features (basic)
+- **Phone screen:** ek phone ke andar Android chalta hai. Phone ke baayein taraf buttons hain: **Switch OS**, **Rotate**, **Full screen** (browser) aur **Power**.
+- **Landscape:** Rotate button (ya `R` key, ya quick settings ka **Landscape** tile) dabao, phone aadha ghoom ke landscape me aa jata hai. YouTube me video ke saath **⛶** dabao to poori screen ka immersive mode milta hai.
+- Lock screen (click ya upar swipe), home screen (date widget, search, dock), app drawer (upar swipe ya ⌃), recents, notification shade + quick settings (status bar pe click), heads-up notifications.
+- Back / Home / Recents buttons. Keyboard: `Esc` = Back, `H` = Home, `N` = shade, `R` = rotate.
+- Light aur dark theme, brightness, 3 wallpapers + apni photo upload.
+- Apps (11): Phone, Messages, Chrome, YouTube, Camera, Gallery, Settings, Clock, Calculator, Calendar, Notes.
+- YouTube: online videos ke liye internet chahiye (GitHub Pages ya localhost pe). Apne PC ki video file bhi chala sakte ho (**My PC**).
 
 ## Keyboard shortcuts
 Browsers khud kuch shortcuts rakh lete hain (Ctrl+W, Ctrl+N, Ctrl+Q, Windows key, Alt+Tab, Alt+F4), isliye virtual OS me ye alag combos hain. Poori list OS ke andar bhi milti hai: Windows me Start → All apps → **Keyboard Shortcuts**, macOS me Help menu → **Keyboard Shortcuts** (Launchpad / Spotlight me bhi).
@@ -117,6 +131,7 @@ Browsers khud kuch shortcuts rakh lete hain (Ctrl+W, Ctrl+N, Ctrl+Q, Windows key
 - [`CHANGELOG.md`](CHANGELOG.md) — version history
 
 ## Version history
+**v0.7** — Android (basic): phone frame, landscape rotation, home screen, app drawer, recents, notification shade, quick settings aur 11 apps. Home page pe Android card ab "Available".
 **v0.5.1** — Home page pe Windows XP, Ubuntu Linux aur Kali Linux ke "Coming soon" cards, live "ready / coming soon" counter.
 **v0.6** — Windows: Explorer / desktop right-click menu (View, Sort by, Group by, **New** → Folder, Shortcut, Word, Excel, PowerPoint, Access, Publisher, Bitmap, Text, Zip, Properties, Terminal, Code), inline rename, Run dialog, Task View, window snap (drag to edge ya shortcuts), keyboard shortcuts, Keyboard Shortcuts app. macOS: asli apple jaisa menu bar icon, 10 naye apps (Music, Messages, Mail, Maps, Contacts, Reminders, Stickies, Preview, App Store, Keyboard Shortcuts), Mission Control, app switcher, Quick Look, window snap, keyboard shortcuts. LICENSE me macOS ke liye bhi education-only note.
 **v0.5** — macOS add hua (`os/mac/`): menu bar, Dock, Launchpad, Spotlight, Control Center, Notification Center, 13 apps, 3 naye wallpapers, custom wallpaper upload. Home page pe macOS card ab "Available".
