@@ -67,7 +67,7 @@ const OS = (() => {
   function open(id, arg) {
     const app = APPS[id]; if (!app) return; if (locked || off) return; closePanels(true);
     let t = tasks.find(x => x.app === id);
-    if (!t) { const el = document.createElement('div'); el.className = 'task'; el.innerHTML = '<div class="task-body"></div>'; $('#tasks').appendChild(el); t = { id: 't' + (++seq), app: id, el, api: {}, onclose: null }; tasks.push(t); app.render($('.task-body', el), t, arg); }
+    if (!t) { const el = document.createElement('div'); el.className = 'task'; if (app.bgc) el.style.background = app.bgc; el.innerHTML = '<div class="task-body"></div>'; $('#tasks').appendChild(el); t = { id: 't' + (++seq), app: id, el, api: {}, onclose: null }; tasks.push(t); app.render($('.task-body', el), t, arg); }
     else if (arg && t.api && t.api.open) t.api.open(arg);
     show(t); return t;
   }
