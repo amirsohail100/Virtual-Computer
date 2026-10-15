@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.7 — Android (basic)
+- Added `os/android`: a phone inside the page with a lock screen, home screen, app drawer, recents, notification shade, quick settings and navigation buttons.
+- **Landscape mode:** rotate button, `R` key and a quick settings tile. YouTube has an immersive full-screen player.
+- 11 apps: Phone, Messages, Chrome, YouTube, Camera, Gallery, Settings, Clock, Calculator, Calendar, Notes.
+- Three wallpapers (Bloom, Aurora, Dunes) and custom wallpaper upload; light and dark themes.
+- Home page: the Android card is now available.
+
 ## v0.6 — Right-click menus, more macOS, keyboard shortcuts
 **Windows**
 - File Explorer rewritten: right-click menu inside any drive or folder (View, Sort by, Group by, **New**, Properties, Open in Windows Terminal, Open with Code, Show more options).
