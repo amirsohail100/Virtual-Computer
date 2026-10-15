@@ -146,3 +146,9 @@ input,textarea,select{font:inherit}
 #screen.lightwall #home,#screen.lightwall .app,#screen.lightwall .glance,#screen.lightwall .drawer-btn{color:#1f1f1f;text-shadow:none}
 #screen.lightwall #lock{background:rgba(0,0,0,.34)}
 .yt-row{padding:0 14px 8px;display:flex;gap:8px;flex-wrap:wrap}.yt-row .yt-in{flex:1 1 120px;min-width:0}
+
+/* overlays with blur slightly larger than the screen, so no bright line shows at the edges */
+#recents{inset:-6px;padding:46px 6px 56px}
+#drawer{inset:-6px;padding:46px 18px 56px}
+#lock{inset:-4px;padding:74px 24px 54px}
+#phone.land #lock{padding:40px 24px 28px}
