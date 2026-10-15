@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Android — Virtual Computer</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+
+  <!-- tools outside the phone -->
+  <div id="tools">
+    <button id="tHome" title="Switch OS (back to the home page)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>Switch OS</span></button>
+    <button id="tRot" title="Rotate the phone (R)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="16" rx="2"/><path d="M4 20h6M20 12a8 8 0 0 1-3 6M17 21l-1-3 3-1"/></svg><span>Rotate</span></button>
+    <button id="tFull" title="Browser full screen"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Full screen</span></button>
+    <button id="tPwr" title="Power button (lock / wake)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg><span>Power</span></button>
+  </div>
+
+  <!-- the phone -->
+  <div id="phoneWrap">
+    <div id="phone">
+      <i class="side pwr" id="sPwr" title="Power"></i><i class="side vup" title="Volume up"></i><i class="side vdn" title="Volume down"></i>
+      <div id="screen">
+        <div id="wall"></div>
+
+        <div id="home">
+          <div class="glance" id="glance"></div>
+          <div class="hgrid" id="hgrid"></div>
+          <div class="hbottom">
+            <button class="drawer-btn" id="drawerBtn" title="All apps">⌃</button>
+            <div class="search" id="hsearch"><span>🔍</span><span class="ph">Search</span><span>🎙️</span></div>
+            <div class="dock" id="dock"></div>
+          </div>
+        </div>
+
+        <div id="tasks"></div>
+        <div id="drawer" class="hidden"></div>
+        <div id="recents" class="hidden"></div>
+        <div id="shade" class="hidden"></div>
+
+        <div id="status"><span id="stTime"></span><span class="stR" id="stIcons"></span></div>
+        <div id="banners"></div>
+        <div id="nav">
+          <button data-n="back" title="Back (Esc)"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17 3v18L5 12z"/></svg></button>
+          <button data-n="home" title="Home"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="8"/></svg></button>
+          <button data-n="recents" title="Recent apps"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4.5" y="4.5" width="15" height="15" rx="3"/></svg></button>
+        </div>
+
+        <div id="lock">
+          <div class="lk-time"><div id="lkTime"></div><div id="lkDate"></div></div>
+          <div class="lk-notif" id="lkNotif"></div>
+          <div class="lk-hint">⌃<br>Swipe up or click to unlock</div>
+        </div>
+        <div id="dim"></div>
+        <div id="off" class="hidden"><button id="wake">Tap to wake</button></div>
+        <i class="punch"></i>
+      </div>
+    </div>
+  </div>
+
+  <div id="hint">Rotate: <b>R</b> · Back: <b>Esc</b> · Home: <b>H</b> · the buttons on the left control the phone</div>
+</div>
+<script src="js/apps.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
