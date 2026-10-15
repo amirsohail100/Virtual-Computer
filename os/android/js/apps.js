@@ -127,7 +127,7 @@ render(body, t) {
 }});
 
 /* ---------- Camera ---------- */
-mk('camera', { name: 'Camera', icon: '📷', bg: 'linear-gradient(135deg,#5f6368,#202124)', dark: true,
+mk('camera', { name: 'Camera', icon: '📷', bg: 'linear-gradient(135deg,#5f6368,#202124)', dark: true, bgc: '#000',
 render(body, t) {
   body.innerHTML = `<div class="cam"><video autoplay playsinline muted></video><div class="m">Starting camera…</div><div class="bar"><div class="thumb" data-g></div><button class="shut" data-snap></button><span style="width:40px"></span></div></div>`;
   const v = body.querySelector('video'), m = body.querySelector('.m'), th = body.querySelector('.thumb'); let stream;
@@ -214,7 +214,7 @@ render(body, t) {
 }});
 
 /* ---------- Calculator ---------- */
-mk('calculator', { name: 'Calculator', icon: '🧮', bg: 'linear-gradient(135deg,#26a69a,#00695c)', dark: true,
+mk('calculator', { name: 'Calculator', icon: '🧮', bg: 'linear-gradient(135deg,#26a69a,#00695c)', dark: true, bgc: '#101215',
 render(body) {
   const keys = ['AC', '±', '%', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '='];
   body.innerHTML = `<div class="calc"><div class="calc-d"><div class="calc-e"></div><div class="calc-v">0</div></div><div class="calc-k">${keys.map(k => `<button class="${'AC±%÷×−+'.includes(k) && k !== '+' || k === '+' ? 'o' : ''} ${k === '=' ? 'eq' : ''} ${k === '0' ? 'z' : ''}">${k}</button>`).join('')}</div></div>`;
