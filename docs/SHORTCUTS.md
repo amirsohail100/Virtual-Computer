@@ -132,3 +132,18 @@ Browsers keep some keys for themselves (Ctrl+W, Ctrl+N, Ctrl+Q, the Windows key,
 | App switcher | Hold `Alt`, tap `J` (or `⌘Tab` on a Mac keyboard), release `Alt` to switch |
 | Finder | `Enter` renames the selected item |
 | Spotlight | Type a calculation such as `12*7` |
+
+## Android
+
+Click the phone first so it receives the keys.
+
+| Key | Action |
+|---|---|
+| `R` | Rotate the phone (portrait / landscape) |
+| `Esc` | Back |
+| `H` | Home |
+| `N` | Open the notification shade and quick settings |
+| `Enter`, `Space` or `↑` | Unlock the lock screen |
+
+Mouse gestures: click the status bar (or drag it down) for quick settings, drag up on the home screen for the app drawer, and click the lock screen to unlock.
+
