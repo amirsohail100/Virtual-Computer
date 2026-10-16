@@ -13,7 +13,7 @@ Open the root `index.html` and click **Android**. Click the lock screen to unloc
 | Power | Turn the screen off and on |
 
 ## Landscape and videos
-Rotate the phone, open **YouTube**, start a video and press **⛶** for the immersive full-screen player. `Esc` (Back) leaves full screen. Online videos need internet and work best when the site is opened from GitHub Pages or `localhost`. The **My PC** button plays a video file from your computer and works anywhere.
+The phone turns by 90° like a real one: first the whole phone tilts, then the screen settles into the landscape layout. Rotate the phone, open **YouTube**, start a video and press **⛶** for the immersive full-screen player. `Esc` (Back) leaves full screen. Online videos need internet and work best when the site is opened from GitHub Pages or `localhost`. The **My PC** button plays a video file from your computer and works anywhere.
 
 ## Features
 - Lock screen, home screen with a date widget, search bar and dock, app drawer with search, recents (clear one or all).
@@ -22,10 +22,10 @@ Rotate the phone, open **YouTube**, start a video and press **⛶** for the imme
 - Wallpapers: Bloom, Aurora and Dunes, or upload your own photo (Fill / Fit / Stretch / Center / Tile).
 - Keyboard: `R` rotate, `Esc` Back, `H` Home, `N` notification shade.
 
-## Apps (11)
-Phone, Messages, Chrome, YouTube, Camera, Gallery, Settings, Clock, Calculator, Calendar, Notes.
+## Apps (20)
+Phone, Messages, Chrome, YouTube, Camera, Gallery, Settings, Clock, Calculator, Calendar, Notes, Play Store, Maps, Mail, Music, Files, Weather, Contacts, Recorder, Snake.
 
-Messages replies are automatic. Camera needs permission and `https` or `localhost`. Photos taken with the camera appear in Gallery.
+Messages replies are automatic, Play Store installs are simulated and Weather uses demo data. Camera and Recorder need permission and `https` or `localhost`. Maps needs internet. Music plays tunes generated in the browser. Snake works with the arrow keys or WASD, or the on-screen pad. Photos taken with the camera appear in Gallery. Files lets you create folders and text files.
 
 ## Files
 | File | Job |
