@@ -41,8 +41,27 @@ const OS = (() => {
     $('#dim').style.background = `rgba(0,0,0,${(100 - settings.brightness) / 130})`; bars(); renderStatus();
   }
   function set(p) { Object.assign(settings, p); jset('a_settings1', settings); apply(); if (panel === 'shade') buildShade(); }
-  function fit() { const W = land ? 808 : 388, H = land ? 388 : 808; $('#phoneWrap').style.setProperty('--k', Math.max(.3, Math.min(1, (innerWidth - 110) / W, (innerHeight - 26) / H))); }
-  function rotate() { land = !land; $('#phone').classList.toggle('land', land); $('#tRot').classList.toggle('on', land); fit(); if (panel === 'shade') buildShade(); }
+  /* turning = true: shrink a little so the phone never touches the window edge while it is tilted (its diagonal is about 896px) */
+  function fit(l = land, turning = false) { const W = l ? 808 : 388, H = l ? 388 : 808, lim = turning ? (Math.min(innerWidth - 110, innerHeight - 26) - 16) / 896 : 9;
+    $('#phoneWrap').style.setProperty('--k', Math.max(.3, Math.min(1, lim, (innerWidth - 110) / W, (innerHeight - 26) / H))); }
+  /* Rotate like a real phone: first the whole phone turns by 90 degrees, then the screen switches to the landscape layout */
+  let rotating = false;
+  function rotate() {
+    if (rotating) return; rotating = true;
+    const toLand = !land, ph = $('#phone'), sc = $('#screen'); let finished = false;
+    $('#phoneWrap').style.transition = 'transform .22s ease-out'; fit(toLand, true);   /* shrink quickly, a little smaller while the phone is tilted */
+    ph.style.transition = 'transform .6s cubic-bezier(.45,0,.2,1)';
+    ph.style.transform = `rotate(${toLand ? -90 : 90}deg)`;
+    const done = () => {
+      if (finished) return; finished = true; ph.removeEventListener('transitionend', onEnd);
+      ph.style.transition = 'none'; ph.style.transform = ''; land = toLand; ph.classList.toggle('land', land);   /* swap shape without animation */
+      $('#tRot').classList.toggle('on', land); void ph.offsetWidth; ph.style.transition = ''; $('#phoneWrap').style.transition = ''; fit();
+      sc.classList.remove('settle'); void sc.offsetWidth; sc.classList.add('settle');                          /* content settles into the new layout */
+      setTimeout(() => { sc.classList.remove('settle'); rotating = false; }, 340); if (panel === 'shade') buildShade();
+    };
+    const onEnd = e => { if (e.target === ph && e.propertyName === 'transform') done(); };
+    ph.addEventListener('transitionend', onEnd); setTimeout(done, 800);
+  }
   function setImmersive(b) { imm = !!b && cur !== null; $('#screen').classList.toggle('imm', imm); }
 
   /* ---------- clock + battery ---------- */
@@ -55,7 +74,7 @@ const OS = (() => {
 
   /* ---------- home screen + drawer ---------- */
   const tile = (id, label = true) => `<button class="app" data-app="${id}"><div class="ic" style="background:${APPS[id].bg}">${iconHTML(id)}</div>${label ? `<span>${APPS[id].name}</span>` : ''}</button>`;
-  const HOME_APPS = ['youtube', 'gallery', 'calendar', 'notes', 'clock', 'calculator', 'settings'], DOCK = ['phone', 'messages', 'chrome', 'camera'];
+  const HOME_APPS = ['youtube', 'gallery', 'playstore', 'maps', 'mail', 'music', 'files', 'weather', 'contacts', 'calendar', 'notes', 'clock', 'calculator', 'recorder', 'snake', 'settings'], DOCK = ['phone', 'messages', 'chrome', 'camera'];
   const buildHome = () => { $('#hgrid').innerHTML = HOME_APPS.map(id => tile(id)).join(''); $('#dock').innerHTML = DOCK.map(id => tile(id, false)).join(''); };
   function buildDrawer() {
     const ids = Object.keys(APPS).sort((a, b) => APPS[a].name.localeCompare(APPS[b].name));
