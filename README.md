@@ -44,7 +44,7 @@ os/
   android/              Android phone (ready, basic)
     index.html, css/style.css
     js/main.js          phone frame, rotation, home, apps, recents, shade
-    js/apps.js          wallpapers aur 11 apps
+    js/apps.js          wallpapers aur 20 apps
     assets/             bloom, aurora, dunes (wallpapers)
   mac/                  macOS (ready)
     index.html, css/style.css
@@ -80,11 +80,11 @@ os/
 
 ## Android — features (basic)
 - **Phone screen:** ek phone ke andar Android chalta hai. Phone ke baayein taraf buttons hain: **Switch OS**, **Rotate**, **Full screen** (browser) aur **Power**.
-- **Landscape:** Rotate button (ya `R` key, ya quick settings ka **Landscape** tile) dabao, phone aadha ghoom ke landscape me aa jata hai. YouTube me video ke saath **⛶** dabao to poori screen ka immersive mode milta hai.
+- **Landscape:** Rotate button (ya `R` key, ya quick settings ka **Landscape** tile) dabao, phone asli phone ki tarah 90° ghoomta hai aur uske baad andar ka layout landscape me set ho jata hai. YouTube me video ke saath **⛶** dabao to poori screen ka immersive mode milta hai.
 - Lock screen (click ya upar swipe), home screen (date widget, search, dock), app drawer (upar swipe ya ⌃), recents, notification shade + quick settings (status bar pe click), heads-up notifications.
 - Back / Home / Recents buttons. Keyboard: `Esc` = Back, `H` = Home, `N` = shade, `R` = rotate.
 - Light aur dark theme, brightness, 3 wallpapers + apni photo upload.
-- Apps (11): Phone, Messages, Chrome, YouTube, Camera, Gallery, Settings, Clock, Calculator, Calendar, Notes.
+- Apps (20): Phone, Messages, Chrome, YouTube, Camera, Gallery, Settings, Clock, Calculator, Calendar, Notes, Play Store, Maps, Mail, Music, Files, Weather, Contacts, Recorder, Snake.
 - YouTube: online videos ke liye internet chahiye (GitHub Pages ya localhost pe). Apne PC ki video file bhi chala sakte ho (**My PC**).
 
 ## Keyboard shortcuts
@@ -131,6 +131,7 @@ Browsers khud kuch shortcuts rakh lete hain (Ctrl+W, Ctrl+N, Ctrl+Q, Windows key
 - [`CHANGELOG.md`](CHANGELOG.md) — version history
 
 ## Version history
+**v0.7.1** — Android: phone ab asli angle se 90° ghoomta hai (pehle sirf shape badalta tha), 9 naye apps (Play Store, Maps, Mail, Music, Files, Weather, Contacts, Recorder, Snake), dark apps me status / navigation bar ka fix.
 **v0.7** — Android (basic): phone frame, landscape rotation, home screen, app drawer, recents, notification shade, quick settings aur 11 apps. Home page pe Android card ab "Available".
 **v0.5.1** — Home page pe Windows XP, Ubuntu Linux aur Kali Linux ke "Coming soon" cards, live "ready / coming soon" counter.
 **v0.6** — Windows: Explorer / desktop right-click menu (View, Sort by, Group by, **New** → Folder, Shortcut, Word, Excel, PowerPoint, Access, Publisher, Bitmap, Text, Zip, Properties, Terminal, Code), inline rename, Run dialog, Task View, window snap (drag to edge ya shortcuts), keyboard shortcuts, Keyboard Shortcuts app. macOS: asli apple jaisa menu bar icon, 10 naye apps (Music, Messages, Mail, Maps, Contacts, Reminders, Stickies, Preview, App Store, Keyboard Shortcuts), Mission Control, app switcher, Quick Look, window snap, keyboard shortcuts. LICENSE me macOS ke liye bhi education-only note.
