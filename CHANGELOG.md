@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.1 — Android rotation and more apps
+- The phone now turns by 90° like a real phone, then the screen settles into the landscape layout (before, only the shape changed).
+- Nine new apps: Play Store (demo), Maps, Mail, Music, Files, Weather (demo), Contacts, Recorder and Snake. The phone now has 20 apps.
+- Fixed invisible status and navigation bars in dark apps (Calculator, Camera) and a bright line at the edge of blurred screens.
+
 ## v0.7 — Android (basic)
 - Added `os/android`: a phone inside the page with a lock screen, home screen, app drawer, recents, notification shade, quick settings and navigation buttons.
 - **Landscape mode:** rotate button, `R` key and a quick settings tile. YouTube has an immersive full-screen player.
