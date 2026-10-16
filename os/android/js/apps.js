@@ -45,8 +45,8 @@ const PHOTOS = { list: () => jget('a_photos1', []), add(name, data) { const l = 
 
 /* ---------- Phone ---------- */
 mk('phone', { name: 'Phone', icon: '📞', bg: 'linear-gradient(135deg,#34a853,#1e8e3e)',
-render(body, t) {
-  let num = '', tab = 'keypad', timer = null; const recents = jget('a_calls1', []);
+render(body, t, arg) {
+  let num = (arg && arg.dial) || '', tab = 'keypad', timer = null; const recents = jget('a_calls1', []);
   const draw = () => {
     body.innerHTML = `<div class="ab"><b>Phone</b></div><div class="ck"><button class="${tab === 'keypad' ? 'on' : ''}" data-t="keypad">Keypad</button><button class="${tab === 'recent' ? 'on' : ''}" data-t="recent">Recents</button></div>` +
       (tab === 'keypad' ? `<div class="dial"><div class="dial-n">${escH(num) || '&nbsp;'}</div><div class="keys">${'123456789*0#'.split('').map(k => `<button data-k="${k}">${k}</button>`).join('')}</div><div style="display:flex;gap:26px;align-items:center"><button class="call" data-call>📞</button><button data-k="⌫" style="font-size:20px;width:44px;height:44px">⌫</button></div></div>`
@@ -63,7 +63,7 @@ render(body, t) {
     if (x.t) tab = x.t; if (x.k) num = x.k === '⌫' ? num.slice(0, -1) : num + x.k; if (x.call !== undefined) return call(num);
     if (x.end !== undefined) { endCall(); return draw(); } if (x.num) { endCall(); return call(x.num); } draw();
   };
-  t.api = { back: () => { if (body.querySelector('.callscr')) { endCall(); draw(); return true; } return false; } }; t.onclose = () => clearInterval(timer); draw();
+  t.api = { back: () => { if (body.querySelector('.callscr')) { endCall(); draw(); return true; } return false; }, open: x => { if (x && x.dial) { num = x.dial; tab = 'keypad'; draw(); } } }; t.onclose = () => clearInterval(timer); draw();
 }});
 
 /* ---------- Messages ---------- */
@@ -257,4 +257,139 @@ render(body, t) {
     if (d.back !== undefined) { cur = null; draw(); } if (d.del !== undefined) { notes = notes.filter(n => n.id !== cur); cur = null; save(); draw(); } };
   body.oninput = e => { if (e.target.tagName !== 'TEXTAREA') return; const n = notes.find(x => x.id === cur); if (n) { n.text = e.target.value; n.t = Date.now(); save(); } };
   t.api = { back: () => { if (cur !== null) { cur = null; draw(); return true; } return false; } }; draw();
+}});
+
+
+/* ================= more apps ================= */
+
+/* ---------- Play Store (demo) ---------- */
+mk('playstore', { name: 'Play Store', icon: '', bg: '#fff', html: '<svg viewBox="0 0 24 24" width="28" height="28"><path d="M4 2.5v19l9.5-9.5z" fill="#00c3ff"/><path d="M4 2.5l12.500 7.200-3 2.800z" fill="#34a853"/><path d="M4 21.500l12.500-7.200-3-2.800z" fill="#ea4335"/><path d="M16.500 9.700l3.800 2.300-3.800 2.300-3-2.300z" fill="#fbbc04"/></svg>',
+render(body) {
+  const items = [['🎵', 'Spotify', 'Music & Audio'], ['💬', 'WhatsApp', 'Communication'], ['🎬', 'Netflix', 'Entertainment'], ['📝', 'Notion', 'Productivity'], ['🎮', 'Minecraft', 'Games'], ['🗺️', 'Google Maps', 'Travel'], ['📹', 'Zoom', 'Business'], ['🧑‍💻', 'Termux', 'Tools']];
+  const inst = jget('a_store1', []);
+  const draw = () => { body.innerHTML = `<div class="ab"><b>Play Store</b></div><div class="ps-h"><b>Top free apps</b><div class="hint" style="color:#fff;opacity:.85">Demo store — installs are simulated for learning.</div></div>${items.map((x, i) => `<div class="li"><div class="av" style="background:#eef2fb;color:#000;border-radius:12px">${x[0]}</div><div class="grow"><b>${x[1]}</b><small>${x[2]}</small></div><button class="btn ${inst.includes(x[1]) ? '' : 'pri'}" data-i="${i}">${inst.includes(x[1]) ? 'Open' : 'Install'}</button></div>`).join('')}`; };
+  body.onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; const x = items[+b.dataset.i]; if (inst.includes(x[1])) return OS.notify('Play Store', x[1], 'This is a simulated app (demo).', '🛍️'); b.textContent = 'Installing…'; b.disabled = true;
+    setTimeout(() => { inst.push(x[1]); jset('a_store1', inst); if (body.isConnected) draw(); OS.notify('Play Store', x[1] + ' installed', 'Simulated install (demo).', '🛍️'); }, 1300); };
+  draw();
+}});
+
+/* ---------- Maps (OpenStreetMap, needs internet) ---------- */
+mk('maps', { name: 'Maps', icon: '🗺️', bg: 'linear-gradient(135deg,#7be07b,#2e9bff)',
+render(body) {
+  body.innerHTML = `<div class="ab"><input placeholder="Search a place (needs internet)"><button data-go>🔍</button></div><iframe class="web"></iframe>`;
+  const fr = body.querySelector('iframe'), inp = body.querySelector('input');
+  const show = (lat, lon, d = .05) => { fr.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d},${lat - d / 1.6},${lon + d},${lat + d / 1.6}&layer=mapnik&marker=${lat},${lon}`; };
+  const find = async () => { const q = inp.value.trim(); if (!q) return; try { const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q)); const j = await r.json(); if (j[0]) show(+j[0].lat, +j[0].lon); else OS.notify('Maps', 'Not found', 'No place found for “' + q + '”.', '🗺️'); } catch (e) { OS.notify('Maps', 'Offline', 'Maps needs an internet connection.', '🗺️'); } };
+  inp.onkeydown = e => { if (e.key === 'Enter') find(); }; body.querySelector('[data-go]').onclick = find; show(28.6139, 77.209);
+}});
+
+/* ---------- Mail ---------- */
+mk('mail', { name: 'Mail', icon: '✉️', bg: 'linear-gradient(135deg,#ef5350,#c62828)',
+render(body, t) {
+  const mails = [{ f: 'Virtual Android Team', s: 'Welcome to your new phone 🎉', t: 'Hi Student,\n\nThis is a demo mailbox — no real emails are sent or received.\n\nTry rotating the phone with the R key and watch a video in landscape!' }, { f: 'Play Store', s: 'Top free apps this week', t: 'Open the Play Store app to browse demo apps.' }, { f: 'Learning Club', s: 'Add your own app', t: 'Open os/android/js/apps.js and add an app with mk(...). It shows up in the app drawer.' }];
+  let cur = null;
+  const draw = () => { if (cur === null) { body.innerHTML = `<div class="ab"><b>Inbox</b></div>${mails.map((m, i) => `<div class="li" data-i="${i}"><div class="av">${escH(m.f[0])}</div><div class="grow"><b>${escH(m.f)}</b><small>${escH(m.s)}</small></div></div>`).join('')}`; return; }
+    const m = mails[cur]; body.innerHTML = `<div class="ab"><button data-back>‹</button><b>${escH(m.s)}</b></div><div style="padding:6px 18px;overflow:auto"><div class="hint">${escH(m.f)}</div><pre style="white-space:pre-wrap;font:15px Roboto,sans-serif;margin-top:12px;user-select:text">${escH(m.t)}</pre></div>`; };
+  body.onclick = e => { const i = e.target.closest('[data-i]'); if (i) { cur = +i.dataset.i; draw(); } if (e.target.closest('[data-back]')) { cur = null; draw(); } };
+  t.api = { back: () => { if (cur !== null) { cur = null; draw(); return true; } return false; } }; draw();
+}});
+
+/* ---------- Music (tunes generated in the browser) ---------- */
+mk('music', { name: 'Music', icon: '🎵', bg: 'linear-gradient(135deg,#ff5f6d,#c2185b)',
+render(body, t) {
+  const TR = [{ t: 'Morning Dew', a: 'Virtual Band', bpm: 92, c: '#ff9a9e,#fad0c4', n: [[60, 1], [64, 1], [67, 1], [72, 2], [71, 1], [67, 1], [64, 1], [60, 2], [62, 1], [65, 1], [69, 1], [74, 2], [72, 1], [69, 1], [65, 1], [62, 2]] },
+    { t: 'Night Drive', a: 'Synth City', bpm: 112, c: '#667eea,#764ba2', n: [[57, .5], [60, .5], [64, .5], [69, .5], [67, .5], [64, .5], [60, .5], [57, .5], [55, .5], [59, .5], [62, .5], [67, .5], [65, .5], [62, .5], [59, .5], [55, .5]] },
+    { t: 'Lo-fi Loop', a: 'Chill Co.', bpm: 76, c: '#a1c4fd,#c2e9fb', n: [[65, 1.5], [69, .5], [72, 1], [69, 1], [67, 1.5], [64, .5], [60, 1], [64, 1]] }];
+  let ac = null, master = null, cur = 0, playing = false, dur = 1, t0 = 0;
+  const stop = () => { if (ac) { try { ac.close(); } catch (e) {} ac = null; } playing = false; };
+  function start(i) {
+    stop(); cur = (i + TR.length) % TR.length; ac = new (window.AudioContext || window.webkitAudioContext)(); const tr = TR[cur], beat = 60 / tr.bpm;
+    master = ac.createGain(); master.gain.value = .3 * (OS.settings.vol / 100); master.connect(ac.destination); let tt = ac.currentTime + .05; t0 = tt;
+    for (let r = 0; r < 6; r++) for (const [m, b] of tr.n) { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = 440 * Math.pow(2, (m - 69) / 12);
+      g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(.6, tt + .02); g.gain.exponentialRampToValueAtTime(.001, tt + b * beat * .95); o.connect(g); g.connect(master); o.start(tt); o.stop(tt + b * beat); tt += b * beat; }
+    dur = tt - t0; playing = true; draw();
+  }
+  const draw = () => { const tr = TR[cur]; body.innerHTML = `<div class="ab"><b>Music</b></div><div class="mu"><div class="mu-art" style="background:linear-gradient(135deg,${tr.c})">🎵</div><div><h3>${tr.t}</h3><div class="hint">${tr.a}</div><input type="range" id="mup" min="0" max="1000" value="0" disabled style="width:100%;accent-color:#e91e63"><div class="mu-c"><button data-a="prev">⏮</button><button data-a="play" class="bigb">${playing ? '⏸' : '▶'}</button><button data-a="next">⏭</button></div></div></div>
+    ${TR.map((x, i) => `<div class="li" data-i="${i}"><div class="av" style="background:linear-gradient(135deg,${x.c})">🎵</div><div class="grow"><b>${x.t}</b><small>${x.a}</small></div></div>`).join('')}`; };
+  body.onclick = e => { const i = e.target.closest('[data-i]'), a = e.target.dataset.a; if (i) start(+i.dataset.i);
+    if (a === 'play') { if (!ac) start(cur); else if (playing) { ac.suspend(); playing = false; draw(); } else { ac.resume(); playing = true; draw(); } } if (a === 'next') start(cur + 1); if (a === 'prev') start(cur - 1); };
+  const iv = setInterval(() => { if (!ac) return; const el = ac.currentTime - t0, p = body.querySelector('#mup'); if (p) p.value = Math.min(1000, el / dur * 1000); if (el >= dur) start(cur + 1); }, 300);
+  t.onclose = () => { clearInterval(iv); stop(); }; draw();
+}});
+
+/* ---------- Files ---------- */
+mk('files', { name: 'Files', icon: '📁', bg: 'linear-gradient(135deg,#4a90f5,#1a56d6)',
+render(body, t) {
+  let fs = jget('a_fs1', { Downloads: {}, Documents: { 'welcome.txt': 'Welcome to Files!\nCreate folders and text files with the + button.' }, Pictures: {}, Music: {} }), path = [], editing = null;
+  const save = () => jset('a_fs1', fs), node = () => path.reduce((n, k) => n[k], fs);
+  const draw = () => {
+    if (editing !== null) { body.innerHTML = `<div class="ab"><button data-back>‹</button><b>${escH(editing)}</b><span class="sp"></span><button class="btn pri" data-save>Save</button></div><div class="nt"><textarea>${escH(node()[editing])}</textarea></div>`; return; }
+    const d = node(), names = Object.keys(d).sort((a, b) => (typeof d[b] === 'object') - (typeof d[a] === 'object') || a.localeCompare(b));
+    body.innerHTML = `<div class="ab">${path.length ? '<button data-up>‹</button>' : ''}<b>${escH(path.length ? path[path.length - 1] : 'Files')}</b><span class="sp"></span><button data-nf title="New folder">📁＋</button><button data-nt title="New text file">📄＋</button></div>
+      ${names.map(n => `<div class="li" data-n="${escH(n)}"><div class="av" style="background:${typeof d[n] === 'object' ? '#fff3c4' : '#e8f0fe'};color:#000">${typeof d[n] === 'object' ? '📁' : '📄'}</div><div class="grow"><b>${escH(n)}</b><small>${typeof d[n] === 'object' ? Object.keys(d[n]).length + ' items' : d[n].length + ' bytes'}</small></div><button data-del="${escH(n)}" title="Delete">🗑</button></div>`).join('') || '<div class="empty">This folder is empty</div>'}`;
+  };
+  body.onclick = e => { const x = e.target.closest('[data-del],[data-n],[data-up],[data-nf],[data-nt],[data-back],[data-save]'); if (!x) return; const d = x.dataset;
+    if (d.del !== undefined) { delete node()[d.del]; save(); return draw(); }
+    if (d.n !== undefined) { if (typeof node()[d.n] === 'object') path.push(d.n); else editing = d.n; return draw(); }
+    if (d.up !== undefined) path.pop(); if (d.back !== undefined) editing = null;
+    if (d.nf !== undefined) { const n = prompt('Folder name:'); if (n && !(n in node())) { node()[n] = {}; save(); } }
+    if (d.nt !== undefined) { const n = prompt('File name:', 'note.txt'); if (n && !(n in node())) { node()[n] = ''; save(); } }
+    if (d.save !== undefined) { node()[editing] = body.querySelector('textarea').value; save(); editing = null; OS.notify('Files', 'Saved', 'Your file was saved.', '📁'); } draw(); };
+  t.api = { back: () => { if (editing !== null) { editing = null; draw(); return true; } if (path.length) { path.pop(); draw(); return true; } return false; } }; draw();
+}});
+
+/* ---------- Weather (demo data) ---------- */
+mk('weather', { name: 'Weather', icon: '⛅', bg: 'linear-gradient(180deg,#4aa8ff,#1b6fe0)', dark: true, bgc: '#2a74da',
+render(body) {
+  const cities = ['Delhi', 'Mumbai', 'Patna', 'Bengaluru', 'London', 'New York', 'Tokyo'], cond = [['☀️', 'Sunny'], ['⛅', 'Partly cloudy'], ['☁️', 'Cloudy'], ['🌧️', 'Rain'], ['⛈️', 'Thunderstorm']];
+  const hash = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const draw = c => { const h = hash(c + new Date().toDateString()), now = cond[h % 5];
+    body.innerHTML = `<div class="wx"><select id="wxc">${cities.map(x => `<option ${x === c ? 'selected' : ''}>${x}</option>`).join('')}</select><div class="wx-n"><span>${now[0]}</span><b>${14 + h % 22}°</b><div>${now[1]}</div></div><div class="wx-d">${['Tomorrow', '+2', '+3', '+4', '+5'].map(d => { const x = hash(c + d), k = cond[x % 5]; return `<div><small>${d}</small><span>${k[0]}</span><b>${14 + x % 22}°</b></div>`; }).join('')}</div><small style="opacity:.8">Demo data — not a real forecast.</small></div>`; };
+  body.onchange = e => { if (e.target.id === 'wxc') draw(e.target.value); }; draw('Delhi');
+}});
+
+/* ---------- Contacts ---------- */
+mk('contacts', { name: 'Contacts', icon: '👤', bg: 'linear-gradient(135deg,#42a5f5,#1565c0)',
+render(body, t) {
+  let list = jget('a_contacts1', [{ n: 'Priya Sharma', p: '+91 98765 43210' }, { n: 'Rahul Verma', p: '+91 91234 56789' }, { n: 'Mom', p: '+91 90000 11111' }]), cur = null; const save = () => jset('a_contacts1', list);
+  const draw = () => { if (cur === null) { body.innerHTML = `<div class="ab"><b>Contacts</b></div>${list.map((c, i) => `<div class="li" data-i="${i}"><div class="av">${escH(c.n[0] || '?')}</div><div class="grow"><b>${escH(c.n)}</b><small>${escH(c.p)}</small></div></div>`).join('') || '<div class="empty">No contacts</div>'}<button class="fab" data-add>＋</button>`; return; }
+    const c = list[cur]; body.innerHTML = `<div class="ab"><button data-back>‹</button><b>${escH(c.n)}</b></div><div style="text-align:center;padding:20px"><div class="av" style="width:90px;height:90px;font-size:40px;margin:0 auto 12px">${escH(c.n[0] || '?')}</div><h2>${escH(c.n)}</h2><div class="hint">${escH(c.p)}</div><div style="display:flex;gap:12px;justify-content:center;margin-top:18px"><button class="btn pri" data-call>📞 Call</button><button class="btn" data-msg>💬 Message</button><button class="btn" data-del>🗑 Delete</button></div></div>`; };
+  body.onclick = e => { const x = e.target.closest('[data-i],[data-add],[data-back],[data-call],[data-msg],[data-del]'); if (!x) return; const d = x.dataset;
+    if (d.i !== undefined) cur = +d.i; if (d.back !== undefined) cur = null; if (d.add !== undefined) { const n = prompt('Name:'); if (!n) return; list.push({ n, p: prompt('Phone number:', '') || '' }); save(); }
+    if (d.call !== undefined) return OS.open('phone', { dial: list[cur].p }); if (d.msg !== undefined) return OS.open('messages'); if (d.del !== undefined) { list.splice(cur, 1); cur = null; save(); } draw(); };
+  t.api = { back: () => { if (cur !== null) { cur = null; draw(); return true; } return false; } }; draw();
+}});
+
+/* ---------- Voice Recorder (uses your microphone) ---------- */
+mk('recorder', { name: 'Recorder', icon: '🎙️', bg: 'linear-gradient(135deg,#ef5350,#b71c1c)',
+render(body, t) {
+  const recs = []; let mr = null, stream = null, t0 = 0, iv = null;
+  const draw = () => { body.innerHTML = `<div class="ab"><b>Recorder</b></div><div class="rec"><div class="big" id="rt">00:00</div><button class="call ${mr ? 'end' : ''}" data-rec style="background:#d93025">${mr ? '■' : '●'}</button><div class="hint" id="rm">${mr ? 'Recording…' : 'Tap the red button to record'}</div></div><div style="overflow:auto">${recs.map(r => `<div class="li"><div class="grow"><b>${escH(r.n)}</b><audio controls src="${r.url}" style="width:100%;margin-top:6px"></audio></div></div>`).join('')}</div>`; };
+  const stopRec = () => { if (mr) mr.stop(); clearInterval(iv); };
+  body.onclick = async e => { if (!e.target.closest('[data-rec]')) return;
+    if (mr) return stopRec();
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (er) { const m = body.querySelector('#rm'); if (m) m.textContent = 'Microphone permission denied or not available (needs https or localhost).'; return; }
+    const chunks = []; mr = new MediaRecorder(stream); mr.ondataavailable = x => chunks.push(x.data); mr.onstop = () => { stream.getTracks().forEach(s => s.stop()); recs.unshift({ n: 'Recording ' + (recs.length + 1), url: URL.createObjectURL(new Blob(chunks, { type: mr.mimeType })) }); mr = null; if (body.isConnected) draw(); };
+    mr.start(); t0 = Date.now(); draw(); iv = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000), el = body.querySelector('#rt'); if (el) el.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; }, 500); };
+  t.onclose = () => { stopRec(); if (stream) stream.getTracks().forEach(s => s.stop()); }; draw();
+}});
+
+/* ---------- Snake (game) ---------- */
+mk('snake', { name: 'Snake', icon: '🐍', bg: 'linear-gradient(135deg,#43a047,#1b5e20)', dark: true, bgc: '#0d1117',
+render(body, t) {
+  body.innerHTML = `<div class="snk"><div class="snk-m"><canvas width="300" height="300"></canvas><div class="snk-s">Score 0 — tap the board or press Space to start</div></div><div class="pad"><button data-d="U">▲</button><div><button data-d="L">◀</button><button data-d="R">▶</button></div><button data-d="D">▼</button></div></div>`;
+  const cv = body.querySelector('canvas'), cx = cv.getContext('2d'), sc = body.querySelector('.snk-s'), N = 15, S = 20;
+  let snake, dir, nd, food, score, timer = null, over = true; const best = jget('a_snake1', 0);
+  const place = () => { do { food = { x: Math.floor(Math.random() * N), y: Math.floor(Math.random() * N) }; } while (snake.some(p => p.x === food.x && p.y === food.y)); };
+  const reset = () => { snake = [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }]; dir = nd = { x: 1, y: 0 }; score = 0; over = false; place(); clearInterval(timer); timer = setInterval(step, 130); };
+  const draw = () => { cx.fillStyle = '#10161f'; cx.fillRect(0, 0, 300, 300); cx.fillStyle = '#ea4335'; cx.beginPath(); cx.arc(food.x * S + 10, food.y * S + 10, 8, 0, 7); cx.fill(); snake.forEach((p, i) => { cx.fillStyle = i ? '#34a853' : '#8bdc8f'; cx.fillRect(p.x * S + 1, p.y * S + 1, S - 2, S - 2); }); };
+  const step = () => { dir = nd; const h = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+    if (h.x < 0 || h.y < 0 || h.x >= N || h.y >= N || snake.some(p => p.x === h.x && p.y === h.y)) { over = true; clearInterval(timer); const b = Math.max(best, score); jset('a_snake1', b); sc.textContent = `Game over — score ${score} (best ${b}). Tap to play again`; return; }
+    snake.unshift(h); if (h.x === food.x && h.y === food.y) { score++; place(); sc.textContent = 'Score ' + score; } else snake.pop(); draw(); };
+  const turn = k => { const m = { U: { x: 0, y: -1 }, D: { x: 0, y: 1 }, L: { x: -1, y: 0 }, R: { x: 1, y: 0 } }[k]; if (!m) return; if (over) return reset(); if (m.x !== -dir.x || m.y !== -dir.y) nd = m; };
+  body.onclick = e => { const d = e.target.closest('[data-d]'); if (d) return turn(d.dataset.d); if (e.target.closest('canvas, .snk-s') && over) reset(); };
+  const key = e => { if (!body.isConnected || body.closest('.task').style.display === 'none') return; if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    const k = { ArrowUp: 'U', w: 'U', ArrowDown: 'D', s: 'D', ArrowLeft: 'L', a: 'L', ArrowRight: 'R', d: 'R' }[e.key]; if (k) { e.preventDefault(); turn(k); } else if (e.key === ' ' && over) { e.preventDefault(); reset(); } };
+  document.addEventListener('keydown', key); t.onclose = () => { clearInterval(timer); document.removeEventListener('keydown', key); };
+  snake = [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }]; place(); draw();
 }});
