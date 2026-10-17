@@ -68,6 +68,24 @@ header p{color:var(--muted);margin-top:10px;font-size:clamp(14px,2vw,17px)}
 .kl-p .kbar{position:absolute;top:0;left:0;right:0;height:8px;background:#080b12}
 .kl-p .kterm{position:absolute;left:18px;top:16px;right:18px;bottom:16px;border-radius:5px;background:#10131c;border:1px solid #367bf0;padding:7px 8px;font:7px/1.6 Consolas,Menlo,monospace;color:#9ac2ff;display:flex;flex-direction:column;overflow:hidden;white-space:nowrap}
 .kl-p .kterm i{font-style:normal}
+/* Nokia 3310 preview (classic keypad phone) */
+.nk{position:relative;width:76px;height:150px;border-radius:30px 30px 34px 34px;background:linear-gradient(160deg,#3b5f95,#1d3157);border:2px solid #0f1c33;box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.08)}
+.nk-spk{position:absolute;top:7px;left:50%;width:22px;height:3px;margin-left:-11px;border-radius:2px;background:#0d1830}
+.nk-scr{position:absolute;top:16px;left:9px;right:9px;height:42px;border-radius:5px;background:#9cb88a;border:2px solid #0d1830;font:6px/1.35 monospace;color:#1d2b17;padding:3px 4px;display:flex;flex-direction:column;overflow:hidden}
+.nk-scr b{font-size:7px;letter-spacing:1px}.nk-scr i{font-style:normal}.nk-scr u{text-decoration:none;background:#1d2b17;color:#9cb88a;margin-top:auto;padding:0 2px}
+.nk-nav{position:absolute;top:64px;left:0;right:0;height:16px}
+.nk-nav span{position:absolute;left:50%;top:1px;width:22px;height:11px;margin-left:-11px;border-radius:6px;background:#c9d3e6}
+.nk-nav em{position:absolute;left:13px;top:3px;width:12px;height:7px;border-radius:4px;background:#8fa3c4}
+.nk-keys{position:absolute;left:10px;right:10px;bottom:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:3px 4px}
+.nk-keys i{height:9px;border-radius:5px 5px 6px 6px;background:linear-gradient(180deg,#d7dce6,#9aa4b8)}
+/* Quadra OS preview */
+.qd-p{background:radial-gradient(ellipse at 70% 20%,#4a2bd6 0,transparent 55%),linear-gradient(135deg,#070b18,#14102e)}
+.qd-p .qbar{position:absolute;top:0;left:0;right:0;height:11px;background:rgba(10,14,30,.8);display:flex;align-items:center;padding:0 5px;gap:6px}
+.qd-p .qbar b{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#27e1ff,#8a5cff);font-size:0;display:block}
+.qd-p .qbar span{flex:1;height:2px;border-radius:1px;background:rgba(120,160,255,.35)}
+.qd-p .qwin{position:absolute;left:18px;top:22px;width:104px;height:62px;border-radius:5px;background:rgba(8,12,26,.88);border:1px solid #27e1ff;box-shadow:0 0 14px rgba(39,225,255,.35);padding:5px 6px;font:7px/1.7 Consolas,Menlo,monospace;color:#8fe9ff;display:flex;flex-direction:column}
+.qd-p .qwin i{font-style:normal}.qd-p .qwin .g{color:#8a5cff}
+.qd-p .qglow{position:absolute;right:-20px;bottom:-24px;width:90px;height:90px;border-radius:50%;background:#8a5cff;filter:blur(26px);opacity:.55}
 footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:44px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:12.5px}
 
 #toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,30px);opacity:0;padding:12px 20px;border-radius:12px;background:rgba(20,28,56,.95);border:1px solid var(--border);font-size:14px;pointer-events:none;transition:.3s;z-index:20;box-shadow:0 10px 40px rgba(0,0,0,.5)}
