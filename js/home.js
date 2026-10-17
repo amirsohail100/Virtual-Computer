@@ -22,7 +22,13 @@ const SYSTEMS = [
     preview: '<div class="ph and-p"><div class="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="pill"></div></div>' },
   { id: 'iphone', name: 'iPhone', ready: false,
     desc: 'Home screen, App Library, Control Center and lock screen.',
-    preview: '<div class="ph ios-p"><div class="island"></div><div class="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="home"></div></div>' }
+    preview: '<div class="ph ios-p"><div class="island"></div><div class="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="home"></div></div>' },
+  { id: 'nokia', name: 'Nokia 3310', ready: false,
+    desc: 'The classic keypad phone with working physical buttons, menus and the famous Snake game.',
+    preview: '<div class="nk"><div class="nk-spk"></div><div class="nk-scr"><b>NOKIA</b><i>Menu</i><u>Snake II</u></div><div class="nk-nav"><span></span><em></em></div><div class="nk-keys"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>' },
+  { id: 'quadra', name: 'Quadra OS', ready: false,
+    desc: 'My own custom OS, built around the Quadra AI model and the Quadra Code command-line tool.',
+    preview: '<div class="mon qd-p"><div class="qbar"><b>Q</b><span></span></div><div class="qwin"><i>quadra ›</i><i>code .</i><i class="g">▌</i></div><div class="qglow"></div></div>' }
 ];
 
 const cards = document.getElementById('cards'), toast = document.getElementById('toast'), veil = document.getElementById('veil');
@@ -32,7 +38,7 @@ cards.innerHTML = SYSTEMS.map(s => `<button class="card ${s.ready ? 'ready' : 's
   <div class="go">${s.ready ? 'Launch ▶' : 'Coming soon'}</div></div></button>`).join('');
 
 /* footer counter + toast helper */
-const readyNames = () => SYSTEMS.filter(x => x.ready).map(x => x.name).join(' and ');
+const readyNames = () => { const n = SYSTEMS.filter(x => x.ready).map(x => x.name); return n.length > 1 ? n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1] : n[0]; };
 document.getElementById('ver').textContent = SYSTEMS.filter(x => x.ready).length + ' ready · ' + SYSTEMS.filter(x => !x.ready).length + ' coming soon';
 
 let tt;
