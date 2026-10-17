@@ -2,21 +2,44 @@ EDUCATIONAL AND LEARNING USE LICENSE
 
 Copyright (c) 2026
 
-This project ("Windows 11 Web") is created ONLY for educational and
-learning purposes. It is a non-commercial practice prototype built to
+This project ("Virtual Computer") is created ONLY for educational and
+learning purposes. It is a non-commercial practice project built to
 study HTML, CSS and JavaScript.
+
+This applies to EVERY part of the project, including:
+  - the Windows 11 style system (os/windows),
+  - the macOS style system (os/mac), including its apple-shaped menu
+    icon, app icons, wallpapers and layout, which are drawn only to
+    imitate the look of a desktop for learning and are used for
+    EDUCATION AND LEARNING PURPOSES ONLY,
+  - the Android style system (os/android),
+  - the Nokia 3310 style keypad phone, including its look, keypad, menus
+    and the Snake game, which imitates the look and feel of a classic
+    Nokia phone for EDUCATION AND LEARNING PURPOSES ONLY,
+  - the Quadra OS system, which is the author's own design and is also
+    shared only for learning,
+  - any other system added in the future (for example iPhone, Windows XP,
+    Ubuntu Linux or Kali Linux).
 
 Permission is granted to use, read, copy and modify this project for
 personal learning, study and teaching. Commercial use, resale, or
-presenting this project as an official product is NOT permitted.
+presenting this project (or any part of it) as an official product of
+Microsoft, Apple, Google, Nokia or any other company is NOT permitted.
 
 This project is NOT affiliated with, endorsed by, or sponsored by
-Microsoft Corporation. "Windows" and "Windows 11" are trademarks of
-Microsoft Corporation. "macOS", "Mac", "Safari", "Finder" and "iPhone"
-are trademarks of Apple Inc. "Android" is a trademark of Google LLC. No
-proprietary source code or assets of these companies are included; all
-icons are standard emoji or original drawings, all wallpapers are
-original artwork, and all code is original.
+Microsoft Corporation, Apple Inc., Google LLC or Nokia Corporation.
+"Windows" and "Windows 11" are trademarks of Microsoft Corporation.
+"Apple", "macOS", "Mac", "Safari", "Finder", "Spotlight", "Launchpad"
+and "iPhone" are trademarks of Apple Inc. "Android" is a trademark of
+Google LLC. "Nokia" and "3310" are trademarks of Nokia Corporation, and
+the Snake game became famous on Nokia phones; this project only imitates
+that look for learning. "Quadra", "Quadra OS" and "Quadra Code" are
+names used by the author for his own work. All other names belong to
+their respective owners and are used only to describe the imitated look
+and feel for learning. No proprietary source code, firmware, fonts,
+ringtones or other assets of these companies are included; all icons are
+standard emoji or original drawings, all wallpapers are original
+artwork, and all code is original.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 OR IMPLIED. THE AUTHOR IS NOT LIABLE FOR ANY CLAIM OR DAMAGES ARISING
