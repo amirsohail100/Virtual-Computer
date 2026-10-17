@@ -13,6 +13,8 @@ Home page pe user apna OS chunta hai, aur wahi khul jata hai.
 | Kali Linux | 🕒 Coming soon |
 | Android | ✅ Available (basic) |
 | iPhone (iOS) | 🕒 Coming soon |
+| Nokia 3310 | 🕒 Coming soon |
+| Quadra OS (apna custom OS) | 🕒 Coming soon |
 
 > Ye project sirf **education aur learning** ke liye hai. Microsoft, Apple ya Google se koi sambandh nahi hai. Details `LICENSE` me.
 
@@ -51,7 +53,7 @@ os/
     js/main.js          OS core: windows, menu bar, Dock, Launchpad, Spotlight, Control Center, Notification Center
     js/apps.js          wallpapers, file system, sab apps
     assets/             waves, hills, ribbons (wallpapers)
-  winxp/ ubuntu/ kali/ iphone/   (aage banenge)
+  winxp/ ubuntu/ kali/ iphone/ nokia/ quadra/   (aage banenge)
 ```
 
 ## Naya OS kaise add karein
@@ -131,6 +133,7 @@ Browsers khud kuch shortcuts rakh lete hain (Ctrl+W, Ctrl+N, Ctrl+Q, Windows key
 - [`CHANGELOG.md`](CHANGELOG.md) — version history
 
 ## Version history
+**v0.7.2** — Home page pe **Nokia 3310** (keypad phone, asli buttons aur Snake ke saath) aur **Quadra OS** (apna custom OS) ke "Coming soon" cards. LICENSE me Nokia aur Quadra ka note.
 **v0.7.1** — Android: phone ab asli angle se 90° ghoomta hai (pehle sirf shape badalta tha), 9 naye apps (Play Store, Maps, Mail, Music, Files, Weather, Contacts, Recorder, Snake), dark apps me status / navigation bar ka fix.
 **v0.7** — Android (basic): phone frame, landscape rotation, home screen, app drawer, recents, notification shade, quick settings aur 11 apps. Home page pe Android card ab "Available".
 **v0.5.1** — Home page pe Windows XP, Ubuntu Linux aur Kali Linux ke "Coming soon" cards, live "ready / coming soon" counter.
