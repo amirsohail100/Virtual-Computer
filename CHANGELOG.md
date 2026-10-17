@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.2 — Home page: Nokia 3310 and Quadra OS
+- Coming-soon cards for the Nokia 3310 keypad phone and for Quadra OS (the author's own custom OS).
+- LICENSE now covers the Nokia-style phone and the Snake game (education only) and names the Quadra projects.
+- Footer text mentions Nokia.
+
 ## v0.7.1 — Android rotation and more apps
 - The phone now turns by 90° like a real phone, then the screen settles into the landscape layout (before, only the shape changed).
 - Nine new apps: Play Store (demo), Maps, Mail, Music, Files, Weather (demo), Contacts, Recorder and Snake. The phone now has 20 apps.
