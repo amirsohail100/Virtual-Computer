@@ -20,7 +20,7 @@ const SYSTEMS = [
   { id: 'android', name: 'Android', ready: true, path: 'os/android/index.html',
     desc: 'A phone on your screen with home screen, app drawer, quick settings and apps. Rotate it to landscape for videos.',
     preview: '<div class="ph and-p"><div class="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="pill"></div></div>' },
-  { id: 'iphone', name: 'iPhone', ready: false,
+  { id: 'iphone', name: 'iPhone', ready: true, path: 'os/ios/index.html',
     desc: 'Home screen, App Library, Control Center and lock screen.',
     preview: '<div class="ph ios-p"><div class="island"></div><div class="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="home"></div></div>' },
   { id: 'nokia', name: 'Nokia 3310', ready: false,
