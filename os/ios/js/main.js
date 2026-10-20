@@ -8,14 +8,14 @@ const NOTES = [['Messages', 'Aarav', 'Are you free tonight? 🎉', '💬'], ['Ca
 
 const OS = (() => {
   const tasks = [], notifs = []; let seq = 0, cur = null, land = false, locked = true, off = false, panel = null, playing = false, rotating = false, isT = 0, bat = { l: 87, c: false }, g = null, ds = null;
-  const S = { dark: false, wifi: true, bt: true, cell: true, plane: false, hot: false, dnd: false, flash: false, rot: false, brightness: 100, vol: 60, ...jget('i_settings1', {}) };
+  const S = { wall: 'w1', dark: false, wifi: true, bt: true, cell: true, plane: false, hot: false, dnd: false, flash: false, rot: false, brightness: 100, vol: 60, ...jget('i_settings1', {}) };
   const curTask = () => tasks.find(t => t.id === cur), idByName = n => Object.keys(APPS).find(k => APPS[k].name === n);
   const dockIds = ['phone', 'safari', 'messages', 'notes'];
 
   /* ---------- settings, bars, scale ---------- */
   function bars() {
     const t = curTask(); let light = true;
-    if (!(locked || off || panel) && t) light = !!APPS[t.app].dark || S.dark;
+    if (!(locked || off || panel)) light = t ? !!APPS[t.app].dark || S.dark : !$('#screen').classList.contains('lightwall');
     const s = $('#screen'); s.classList.toggle('barlight', light); s.classList.toggle('bardark', !light);
   }
   function renderStatus() {
@@ -23,9 +23,19 @@ const OS = (() => {
     if (S.plane) h += '<span>✈</span>'; else { if (S.cell) h += SI.signal; if (S.wifi) h += SI.wifi(); if (S.hot) h += '<span title="Hotspot">🔗</span>'; }
     $('#stIcons').innerHTML = h + `<span style="display:flex;gap:3px;align-items:center">${SI.bat(bat.l, bat.c)}</span>`;
   }
+  /* wallpaper: built-in SVG or a photo from the device storage ("u:<id>") */
+  let wallKey = null, wallUrl = null;
+  const lum = url => new Promise(r => { const i = new Image(); i.onload = () => { try { const c = document.createElement('canvas'); c.width = c.height = 8; const x = c.getContext('2d'); x.drawImage(i, 0, 0, 8, 8); const d = x.getImageData(0, 0, 8, 8).data; let s = 0; for (let k = 0; k < d.length; k += 4) s += .299 * d[k] + .587 * d[k + 1] + .114 * d[k + 2]; r(s / 64 > 165); } catch (e) { r(false); } }; i.onerror = () => r(false); i.src = url; });
+  async function applyWall() {
+    if (wallKey === S.wall) return; wallKey = S.wall; let url = null, light = false;
+    if (S.wall.startsWith('u:')) { try { const f = await FS.get(S.wall.slice(2)); if (f) url = URL.createObjectURL(f.blob); } catch (e) {} }
+    if (url) { if (wallUrl) URL.revokeObjectURL(wallUrl); wallUrl = url; light = await lum(url); }
+    else { const w = WALLS.find(x => x.id === S.wall) || WALLS[0]; url = w.img; light = w.light; wallKey = S.wall = w.id; }
+    $('#wall').style.backgroundImage = `url("${url}")`; $('#screen').classList.toggle('lightwall', light); bars();
+  }
   function apply() {
     $('#screen').classList.toggle('dark', S.dark); $('#dim').style.background = `rgba(0,0,0,${(100 - S.brightness) / 130})`;
-    $$('#lock .lb[data-lb=flash]').forEach(x => x.classList.toggle('on', S.flash)); bars(); renderStatus();
+    $$('#lock .lb[data-lb=flash]').forEach(x => x.classList.toggle('on', S.flash)); bars(); renderStatus(); applyWall();
   }
   function set(p, quiet) { Object.assign(S, p); jset('i_settings1', S); apply(); tasks.forEach(t => t.api.sync && t.api.sync()); if (panel === 'cc' && !quiet) buildCC(); }
   function fit(l = land, turning = false) { const W = l ? 808 : 388, H = l ? 388 : 808, lim = turning ? (Math.min(innerWidth - 110, innerHeight - 26) - 16) / 896 : 9;
@@ -154,7 +164,10 @@ const OS = (() => {
   });
   addEventListener('resize', () => fit());
 
+  /* drop files anywhere on the page: images -> Photos, others -> Files */
+  ['dragover', 'drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); if (ev === 'drop' && e.dataTransfer && e.dataTransfer.files.length) FS.import(e.dataTransfer.files); }));
+
   /* ---------- boot ---------- */
   buildHome(); apply(); fit(); tick(); renderLockNotifs(); setInterval(tick, 1000); setTimeout(randomEvent, 6000);
-  return { open, notify, rotate, set, goHome, back, get settings() { return S; }, get land() { return land; } };
+  return { sync: () => tasks.forEach(t => t.api.sync && t.api.sync()), open, notify, rotate, set, goHome, back, get settings() { return S; }, get land() { return land; } };
 })();
