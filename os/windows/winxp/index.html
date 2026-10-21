@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windows XP — Virtual Computer</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="screen" class="th-blue">
+
+  <!-- Boot + login -->
+  <div id="boot"><div class="bl"><div class="logo"><span class="flag"></span><b>Windows<sup>xp</sup></b></div><div class="bar"><i></i><i></i><i></i></div></div><small>Virtual replica — not affiliated with Microsoft</small></div>
+  <div id="login" class="hidden">
+    <div class="lt"></div>
+    <div class="lm"><div class="ll"><div class="logo"><span class="flag"></span><b>Windows<sup>xp</sup></b></div><p>To begin, click your user name</p></div>
+      <div class="lr"><div class="usr" id="usr"><span class="pic">♟</span><div><b>Student</b><small>Click to log on</small></div></div></div></div>
+    <div class="lb"><button id="lgOff">⏻ Turn off computer</button><span>After you log on, you can add or change accounts.</span></div>
+  </div>
+
+  <!-- Desktop -->
+  <div id="desktop"><div id="icons"></div></div>
+  <div id="windows"></div>
+
+  <!-- Start menu -->
+  <div id="start" class="hidden">
+    <div class="sh"><span class="pic">♟</span><b>Student</b></div>
+    <div class="sb"><div class="sl" id="sl"></div><div class="sr" id="sr"></div></div>
+    <div class="sf"><button id="sfLog">🔑 Log Off</button><button id="sfOff">⏻ Turn Off Computer</button></div>
+    <div id="allprog" class="hidden"></div>
+  </div>
+
+  <!-- Taskbar -->
+  <div id="taskbar">
+    <button id="startBtn"><span class="flag"></span><i>start</i></button>
+    <div class="ql"><button id="qlIE" title="Launch Internet Explorer">🌐</button><button id="qlDesk" title="Show Desktop">🗔</button></div>
+    <div id="tasks"></div>
+    <div id="tray"><span id="trNet" title="Connected">🖧</span><span id="trVol" title="Volume">🔊</span><span id="trClock" title="Date and Time"></span></div>
+  </div>
+
+  <div id="balloon" class="hidden"></div>
+  <div id="ctx" class="hidden"></div>
+  <div id="modal" class="hidden"></div>
+  <div id="off" class="hidden"><p id="offMsg"></p><button id="powerOn">⏻ Power on</button></div>
+</div>
+<script src="js/apps.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
