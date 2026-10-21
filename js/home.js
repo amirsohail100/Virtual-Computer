@@ -2,7 +2,7 @@
    Naya OS add karna ho: os/<naam>/ folder banao (index.html ke saath),
    phir SYSTEMS me uski entry me ready:true aur path likh do. */
 const SYSTEMS = [
-  { id: 'windows', name: 'Windows 11', ready: true, path: 'os/windows/index.html',
+  { id: 'windows', name: 'Windows 11', ready: true, path: 'os/windows/win11/index.html',
     desc: 'Desktop with Start menu, taskbar, File Explorer, Settings, Notepad, Paint and more.',
     preview: '<div class="mon win-p"><div class="wnd"></div><div class="tbar"><i></i><i></i><i></i><i></i></div></div>' },
   { id: 'winxp', name: 'Windows XP', ready: false,
