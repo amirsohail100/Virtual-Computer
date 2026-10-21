@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"><defs>
+<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f5fd6"/><stop offset=".55" stop-color="#5a9be8"/><stop offset="1" stop-color="#b9dcf7"/></linearGradient>
+<linearGradient id="h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc83c"/><stop offset=".5" stop-color="#4a9a1e"/><stop offset="1" stop-color="#2b6f10"/></linearGradient>
+<linearGradient id="h2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fb12c"/><stop offset="1" stop-color="#2f7a14"/></linearGradient>
+<filter id="b"><feGaussianBlur stdDeviation="22"/></filter></defs>
+<rect width="1600" height="1000" fill="url(#s)"/>
+<g fill="#fff" filter="url(#b)" opacity=".92"><ellipse cx="300" cy="230" rx="260" ry="48"/><ellipse cx="430" cy="200" rx="150" ry="40"/><ellipse cx="1150" cy="150" rx="300" ry="42"/><ellipse cx="1330" cy="260" rx="200" ry="34"/><ellipse cx="760" cy="330" rx="220" ry="30"/></g>
+<path d="M0 640 C300 520 650 540 900 600 C1150 660 1400 560 1600 520 L1600 1000 L0 1000Z" fill="url(#h2)"/>
+<path d="M0 760 C250 640 600 660 880 740 C1180 830 1420 700 1600 650 L1600 1000 L0 1000Z" fill="url(#h)"/>
+<path d="M0 900 C300 820 700 860 1000 900 C1250 930 1450 880 1600 840 L1600 1000 L0 1000Z" fill="#3c8a18" opacity=".55"/></svg>
