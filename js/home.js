@@ -5,7 +5,7 @@ const SYSTEMS = [
   { id: 'windows', name: 'Windows 11', ready: true, path: 'os/windows/win11/index.html',
     desc: 'Desktop with Start menu, taskbar, File Explorer, Settings, Notepad, Paint and more.',
     preview: '<div class="mon win-p"><div class="wnd"></div><div class="tbar"><i></i><i></i><i></i><i></i></div></div>' },
-  { id: 'winxp', name: 'Windows XP', ready: false, path: 'os/windows/winxp/index.html',
+  { id: 'winxp', name: 'Windows XP', ready: true, path: 'os/windows/winxp/index.html',
     desc: 'The classic Bliss desktop with the green Start button, taskbar and old-school windows.',
     preview: '<div class="mon xp-p"><div class="xwin"></div><div class="xbar"></div><div class="xstart"></div></div>' },
   { id: 'mac', name: 'macOS', ready: true, path: 'os/mac/index.html',
