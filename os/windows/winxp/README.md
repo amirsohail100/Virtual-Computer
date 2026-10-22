@@ -7,7 +7,7 @@ Windows XP (Luna) replica for the virtual computer. Open `index.html`. Same stru
 draggable / resizable / minimise / maximise windows (double-click the title bar), right-click menus.
 
 **Apps:** My Computer / Explorer (My Documents, My Pictures, My Music, Desktop, Recycle Bin), Notepad, Calculator, Minesweeper,
-Command Prompt, Internet Explorer (lite), Picture viewer, Media player, Display Properties (wallpaper + theme), Control Panel, System Properties, Date and Time, Run.
+Paint, Solitaire, WordPad, Task Manager (taskbar right-click or Ctrl+Shift+Esc), Sound Recorder, Command Prompt, Internet Explorer (lite), Picture viewer, Media player, Display Properties (wallpaper + theme), Control Panel, System Properties, Date and Time, Run.
 
 **Upload from PC / phone:** Explorer → Upload, right-click the desktop → Upload files, or drag & drop files onto the page.
 Images go to My Pictures, audio/video to My Music, everything else to My Documents (stored in the browser, IndexedDB).
