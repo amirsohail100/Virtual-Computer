@@ -57,7 +57,7 @@ const OS = (() => {
     const f = $('input', m) || $('button', m); f && f.focus(); if ($('input', m)) $('input', m).select();
   }
   function balloon(title, text) { const b = $('#balloon'); b.innerHTML = `<b>${escH(title)}</b>${escH(text)}`; b.classList.remove('hidden'); clearTimeout(balT); balT = setTimeout(() => b.classList.add('hidden'), 4500); b.onclick = () => b.classList.add('hidden'); }
-  const run = () => dialog({ title: 'Run', html: 'Type the name of a program, folder, document, or Internet address, and Windows will open it for you.<br><br>Open: <input id="rn" style="width:200px">', buttons: [['OK', m => { const v = $('#rn', m).value.trim(), k = { notepad: 'notepad', calc: 'calc', winmine: 'mine', cmd: 'cmd', iexplore: 'ie', explorer: 'explorer', control: 'control', '': null }[v.toLowerCase()]; if (k) open(k); else if (v) { if (/^(https?:\/\/|www\.)/i.test(v)) open('ie', v.startsWith('www') ? 'https://' + v : v); else dialog({ title: v, html: `Windows cannot find '${escH(v)}'. Make sure you typed the name correctly, and then try again.` }); } }], ['Cancel']], w: 360 });
+  const run = () => dialog({ title: 'Run', html: 'Type the name of a program, folder, document, or Internet address, and Windows will open it for you.<br><br>Open: <input id="rn" style="width:200px">', buttons: [['OK', m => { const v = $('#rn', m).value.trim(), k = { notepad: 'notepad', calc: 'calc', winmine: 'mine', cmd: 'cmd', iexplore: 'ie', explorer: 'explorer', control: 'control', mspaint: 'paint', sol: 'solitaire', wordpad: 'wordpad', taskmgr: 'taskmgr', sndrec32: 'sndrec', '': null }[v.toLowerCase()]; if (k) open(k); else if (v) { if (/^(https?:\/\/|www\.)/i.test(v)) open('ie', v.startsWith('www') ? 'https://' + v : v); else dialog({ title: v, html: `Windows cannot find '${escH(v)}'. Make sure you typed the name correctly, and then try again.` }); } }], ['Cancel']], w: 360 });
 
   /* ---------- desktop ---------- */
   const ICONS = [['docs', '📁', 'My Documents', () => open('explorer', { loc: 'docs' })], ['root', '🖥️', 'My Computer', () => open('explorer', { loc: 'root' })], ['bin', '🗑️', 'Recycle Bin', () => open('explorer', { loc: 'bin' })], ['ie', '🌐', 'Internet Explorer', () => open('ie')]];
@@ -73,7 +73,7 @@ const OS = (() => {
   function sync() { buildDesktop(); wins.forEach(w => w.api.sync && w.api.sync()); }
 
   /* ---------- start menu ---------- */
-  const PIN = [['ie', 'Internet Explorer', 'Browse the web'], ['notepad', 'Notepad', ''], ['calc', 'Calculator', ''], ['mine', 'Minesweeper', ''], ['cmd', 'Command Prompt', ''], ['explorer', 'My Computer', 'Files and folders']];
+  const PIN = [['ie', 'Internet Explorer', 'Browse the web'], ['notepad', 'Notepad', ''], ['calc', 'Calculator', ''], ['paint', 'Paint', ''], ['solitaire', 'Solitaire', ''], ['mine', 'Minesweeper', ''], ['cmd', 'Command Prompt', ''], ['explorer', 'My Computer', 'Files and folders']];
   function buildStart() {
     $('#sl').innerHTML = PIN.map(p => `<div class="sm" data-o="${p[0]}"><i>${APPS[p[0]].icon}</i><div><b>${p[1]}</b>${p[2] ? `<small>${p[2]}</small>` : ''}</div></div>`).join('') + '<div class="sm all" data-all>All Programs ▶</div>';
     $('#sr').innerHTML = [['docs', '📁', 'My Documents', 1], ['pics', '🖼️', 'My Pictures', 1], ['music', '🎵', 'My Music', 1], ['root', '🖥️', 'My Computer', 1]].map(p => `<div class="sm b" data-l="${p[0]}"><i>${p[1]}</i>${p[2]}</div>`).join('') + '<hr><div class="sm" data-o="control"><i>⚙️</i>Control Panel</div><div class="sm" data-o="display"><i>🖥️</i>Display</div><hr><div class="sm" data-run><i>🏃</i>Run…</div>';
@@ -86,6 +86,8 @@ const OS = (() => {
     if (o) { toggleStart(false); open(o.dataset.o); } else if (l) { toggleStart(false); open('explorer', { loc: l.dataset.l }); } else if (e.target.closest('[data-run]')) { toggleStart(false); run(); } };
   document.addEventListener('pointerdown', e => { if (startOpen() && !e.target.closest('#start,#startBtn')) toggleStart(false); if (!e.target.closest('#ctx')) $('#ctx').classList.add('hidden'); });
   $('#qlIE').onclick = () => open('ie'); $('#qlDesk').onclick = showDesktop; $('#trClock').ondblclick = () => open('datetime'); $('#trVol').onclick = () => balloon('Volume', 'Master volume: 70%');
+
+  $('#taskbar').addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); menu(e.clientX, e.clientY, [['Show the Desktop', showDesktop], '-', ['Task Manager', () => open('taskmgr')]]); });
 
   /* ---------- power / login ---------- */
   const goHome = () => { location.href = '../../index.html'; };
@@ -104,9 +106,9 @@ const OS = (() => {
   /* ---------- clock, drop, keys ---------- */
   const tick = () => { const d = new Date(); $('#trClock').textContent = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); $('#trClock').title = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); };
   ['dragover', 'drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); if (ev === 'drop' && e.dataTransfer && e.dataTransfer.files.length) FS.import(e.dataTransfer.files); }));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { toggleStart(false); $('#ctx').classList.add('hidden'); } else if (e.key === 'Meta') { e.preventDefault(); toggleStart(); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { toggleStart(false); $('#ctx').classList.add('hidden'); } else if (e.ctrlKey && e.shiftKey && e.key === 'Escape') open('taskmgr'); else if (e.key === 'Meta') { e.preventDefault(); toggleStart(); } });
   addEventListener('resize', () => wins.forEach(w => { if (!w.max && w.el.offsetLeft > innerWidth - 80) w.el.style.left = Math.max(0, innerWidth - 200) + 'px'; }));
 
   apply(); buildDesktop(); buildStart(); tick(); setInterval(tick, 15000);
-  return { open, set, sync, balloon, dialog, menu, close, get settings() { return S; } };
+  return { open, set, sync, balloon, dialog, menu, close, focus, restore, run, get wins() { return wins; }, get settings() { return S; } };
 })();
