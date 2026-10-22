@@ -37,7 +37,7 @@ const FS = (() => {
   return self;
 })();
 function openFile(f) {
-  if (isImg(f)) OS.open('viewer', f.id); else if (isText(f)) OS.open('notepad', f.id); else if (isMedia(f)) OS.open('wmp', f.id);
+  if (/\.wpd$/i.test(f.name)) OS.open('wordpad', f.id); else if (isImg(f)) OS.open('viewer', f.id); else if (isText(f)) OS.open('notepad', f.id); else if (isMedia(f)) OS.open('wmp', f.id);
   else if (/pdf/.test(f.type)) { const u = URL.createObjectURL(f.blob); window.open(u, '_blank'); setTimeout(() => URL.revokeObjectURL(u), 6e4); } else download(f);
 }
 /* menu bar: spec = { File: [['New', fn], '-', ['Exit', fn]], ... } */
@@ -154,7 +154,7 @@ const APPS = {
   viewer: { name: 'Windows Picture and Fax Viewer', icon: '🖼️', w: 640, h: 480,
     render(b, w, arg) {
       let url = null, rec = null; b.style.display = 'flex'; b.style.flexDirection = 'column';
-      b.appendChild(mbar({ File: [['Set as Desktop Background', () => rec && OS.set({ wall: 'u:' + rec.id, pos: 'stretch' })], ['Download', () => rec && download(rec)], '-', ['Close', () => w.close()]] })); const v = document.createElement('div'); v.className = 'vw'; v.style.flex = '1'; b.appendChild(v);
+      b.appendChild(mbar({ File: [['Edit with Paint', () => rec && OS.open('paint', rec.id)], ['Set as Desktop Background', () => rec && OS.set({ wall: 'u:' + rec.id, pos: 'stretch' })], ['Download', () => rec && download(rec)], '-', ['Close', () => w.close()]] })); const v = document.createElement('div'); v.className = 'vw'; v.style.flex = '1'; b.appendChild(v);
       const load = async id => { rec = await FS.get(id); if (!rec) return; url && URL.revokeObjectURL(url); url = URL.createObjectURL(rec.blob); v.innerHTML = `<img src="${url}" alt="">`; w.setTitle(rec.name + ' - Picture Viewer'); }; load(arg); w.api.arg = load; w.api.close = () => url && URL.revokeObjectURL(url);
     } },
   wmp: { name: 'Windows Media Player', icon: '▶️', w: 520, h: 360,
@@ -181,3 +181,102 @@ const APPS = {
     render(b, w) { const iv = setInterval(() => { const t = $('#dt', b); t ? t.textContent = new Date().toLocaleTimeString() : clearInterval(iv); }, 1000), d = new Date(), f = new Date(d.getFullYear(), d.getMonth(), 1).getDay(), n = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); let h = 'SMTWTFS'.split('').map(c => `<b>${c}</b>`).join('') + '<i></i>'.repeat(f);
       for (let i = 1; i <= n; i++) h += `<span class="${i === d.getDate() ? 't' : ''}">${i}</span>`; b.innerHTML = `<div style="padding:14px;background:#fff;height:100%"><b>${MONTHS[d.getMonth()]} ${d.getFullYear()}</b><div class="cal" style="margin:8px 0">${h}</div><div id="dt" style="font-size:20px;text-align:center">${d.toLocaleTimeString()}</div></div>`; w.api.close = () => clearInterval(iv); } }
 };
+
+
+/* ---------- more apps: Paint, Solitaire, Task Manager, WordPad, Sound Recorder ---------- */
+const saveAsDlg = (name, cb) => OS.dialog({ title: 'Save As', html: 'File name:<br><input id="fn" style="width:240px" value="' + escH(name) + '">', buttons: [['Save', m => cb($('#fn', m).value.trim() || name)], ['Cancel']] });
+Object.assign(APPS, {
+  paint: { name: 'untitled - Paint', icon: '🎨', w: 760, h: 540, prog: 1,
+    render(b, w, arg) {
+      let tool = 'pencil', fg = '#000000', bg = '#ffffff', size = 2, id = null, name = 'untitled.png', hist = [], on = false, sx, sy, snap, col;
+      const PAL = ['#000000', '#808080', '#800000', '#808000', '#008000', '#008080', '#000080', '#800080', '#808040', '#004040', '#0080ff', '#004080', '#4000ff', '#804000', '#ffffff', '#c0c0c0', '#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#ffff80', '#00ff80', '#80ffff', '#8080ff', '#ff0080', '#ff8040'];
+      const TOOLS = [['pencil', '✏️'], ['brush', '🖌️'], ['eraser', '🧽'], ['fill', '🪣'], ['pick', '💧'], ['line', '╱'], ['rect', '▭'], ['oval', '◯']];
+      b.style.display = 'flex'; b.style.flexDirection = 'column'; const title = () => w.setTitle(name + ' - Paint');
+      const body = document.createElement('div'); body.className = 'pt';
+      body.innerHTML = `<div class="tb">${TOOLS.map(t => `<button data-t="${t[0]}" title="${t[0]}">${t[1]}</button>`).join('')}</div><div class="cv"><canvas width="640" height="400"></canvas></div>`;
+      const pal = document.createElement('div'); pal.className = 'pal'; pal.innerHTML = `<div class="cur"><i id="cb" style="background:${bg}"></i><i id="cf" style="background:${fg}"></i></div><div class="sw">${PAL.map(c => `<i data-c="${c}" style="background:${c}"></i>`).join('')}</div>Size <select id="sz"><option>1</option><option selected>2</option><option>4</option><option>8</option></select>`;
+      const cv = $('canvas', body), x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 640, 400);
+      const rgb = h => { const s = h.length === 4 ? h.replace(/#(.)(.)(.)/, '#$1$1$2$2$3$3') : h; return [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)); };
+      const push = () => { hist.push(x.getImageData(0, 0, cv.width, cv.height)); if (hist.length > 25) hist.shift(); };
+      const undo = () => { const h = hist.pop(); if (h) x.putImageData(h, 0, 0); }, clear = () => { push(); x.fillStyle = bg; x.fillRect(0, 0, cv.width, cv.height); };
+      const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width | 0, (e.clientY - r.top) * cv.height / r.height | 0]; };
+      const flood = (px, py, c) => { const W = cv.width, H = cv.height, im = x.getImageData(0, 0, W, H), d = im.data, i0 = (py * W + px) * 4, t = [d[i0], d[i0 + 1], d[i0 + 2]], n = rgb(c); if (t[0] === n[0] && t[1] === n[1] && t[2] === n[2]) return; const st = [[px, py]];
+        while (st.length) { const [p, q] = st.pop(); if (p < 0 || q < 0 || p >= W || q >= H) continue; const i = (q * W + p) * 4; if (d[i] !== t[0] || d[i + 1] !== t[1] || d[i + 2] !== t[2]) continue; d[i] = n[0]; d[i + 1] = n[1]; d[i + 2] = n[2]; d[i + 3] = 255; st.push([p + 1, q], [p - 1, q], [p, q + 1], [p, q - 1]); } x.putImageData(im, 0, 0); };
+      cv.oncontextmenu = e => e.preventDefault();
+      cv.onpointerdown = e => { e.preventDefault(); cv.setPointerCapture(e.pointerId); const [px, py] = pos(e); col = e.button === 2 ? bg : fg;
+        if (tool === 'fill') { push(); return flood(px, py, col); }
+        if (tool === 'pick') { const d = x.getImageData(px, py, 1, 1).data, h = '#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join(''); if (e.button === 2) bg = h; else fg = h; return cols(); }
+        push(); on = true; sx = px; sy = py; snap = x.getImageData(0, 0, cv.width, cv.height); x.lineCap = x.lineJoin = 'round'; x.strokeStyle = tool === 'eraser' ? bg : col; x.lineWidth = tool === 'eraser' ? size * 4 : tool === 'brush' ? size * 3 : size;
+        if (/pencil|brush|eraser/.test(tool)) { x.beginPath(); x.moveTo(px, py); x.lineTo(px, py); x.stroke(); x.beginPath(); x.moveTo(px, py); } };
+      cv.onpointermove = e => { if (!on) return; const [px, py] = pos(e);
+        if (/pencil|brush|eraser/.test(tool)) { x.lineTo(px, py); x.stroke(); x.beginPath(); x.moveTo(px, py); return; }
+        x.putImageData(snap, 0, 0); x.beginPath(); if (tool === 'line') { x.moveTo(sx, sy); x.lineTo(px, py); } else if (tool === 'rect') x.rect(sx, sy, px - sx, py - sy); else x.ellipse((sx + px) / 2, (sy + py) / 2, Math.abs(px - sx) / 2, Math.abs(py - sy) / 2, 0, 0, 7); x.stroke(); };
+      cv.onpointerup = () => { on = false; };
+      const cols = () => { $('#cb', pal).style.background = bg; $('#cf', pal).style.background = fg; };
+      pal.onclick = e => { const c = e.target.closest('[data-c]'); if (c) { fg = c.dataset.c; cols(); } }; pal.oncontextmenu = e => { e.preventDefault(); const c = e.target.closest('[data-c]'); if (c) { bg = c.dataset.c; cols(); } }; pal.onchange = e => { if (e.target.id === 'sz') size = +e.target.value; };
+      body.onclick = e => { const t = e.target.closest('[data-t]'); if (t) { tool = t.dataset.t; $$('.tb button', body).forEach(n => n.classList.toggle('on', n === t)); } }; $('.tb button', body).classList.add('on');
+      const load = blob => { const im = new Image(), u = URL.createObjectURL(blob); im.onload = () => { cv.width = im.width; cv.height = im.height; x.drawImage(im, 0, 0); URL.revokeObjectURL(u); hist = []; }; im.src = u; };
+      const doSave = n => { name = n; if (!/\.\w+$/.test(name)) name += '.png'; cv.toBlob(async bl => { const r = await FS.save(name, 'image/png', bl, 'pics', id); id = r.id; title(); OS.balloon('Paint', 'Saved to My Pictures'); }); };
+      b.appendChild(mbar({ File: [['New', () => { id = null; name = 'untitled.png'; cv.width = 640; cv.height = 400; x.fillStyle = '#fff'; x.fillRect(0, 0, 640, 400); hist = []; title(); }], ['Open…', () => pickFiles('image/*', fs => { name = fs[0].name; id = null; load(fs[0]); title(); })], ['Save', () => id ? doSave(name) : saveAsDlg(name, doSave)], ['Save As…', () => saveAsDlg(name, n => { id = null; doSave(n); })], '-', ['Exit', () => w.close()]], Edit: [['Undo', undo], ['Clear Image', clear]] }));
+      b.appendChild(body); b.appendChild(pal); body.style.flex = '1'; title();
+      if (arg) FS.get(arg).then(f => { if (f) { id = f.id; name = f.name; load(f.blob); title(); } }); w.api.arg = a2 => FS.get(a2).then(f => { if (f) { id = f.id; name = f.name; load(f.blob); title(); } });
+      w.el.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'z') undo(); });
+    } },
+  solitaire: { name: 'Solitaire', icon: '🃏', w: 670, h: 520, prog: 1,
+    render(b, w) {
+      const SU = ['♠', '♥', '♦', '♣'], RK = ['', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']; let tab, stock, waste, found, sel = null;
+      const red = c => c.s === 1 || c.s === 2, pile = p => p[0] === 't' ? tab[+p.slice(1)] : p[0] === 'f' ? found[+p.slice(1)] : p === 'w' ? waste : stock;
+      const canTab = (c, col) => { const t = col[col.length - 1]; return t ? t.up && red(t) !== red(c) && t.r === c.r + 1 : c.r === 13; }, canFnd = (c, f) => f.length ? f[f.length - 1].s === c.s && c.r === f.length + 1 : c.r === 1;
+      const deal = () => { const d = []; for (let s = 0; s < 4; s++) for (let r = 1; r <= 13; r++) d.push({ s, r, up: 0 }); for (let i = d.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0;[d[i], d[j]] = [d[j], d[i]]; } tab = []; for (let i = 0; i < 7; i++) { tab.push(d.splice(0, i + 1)); tab[i][i].up = 1; } stock = d; waste = []; found = [[], [], [], []]; sel = null; draw(); };
+      const card = (c, p, i, x, y, s) => `<div class="cd ${c.up ? 'f' + (red(c) ? ' r' : '') : 'bk'}${s ? ' sel' : ''}" data-p="${p}" data-i="${i}" style="left:${x}px;top:${y}px">${c.up ? `<b>${RK[c.r]}${SU[c.s]}</b><i>${SU[c.s]}</i>` : ''}</div>`;
+      const draw = () => { let h = `<div class="sl" data-p="s" style="left:10px;top:10px;color:#fff;font-size:30px;text-align:center;line-height:92px">${stock.length ? '' : '↻'}</div>`;
+        stock.length && (h += card(stock[stock.length - 1], 's', 0, 10, 10, 0)); waste.length && (h += card(waste[waste.length - 1], 'w', waste.length - 1, 90, 10, sel && sel.p === 'w'));
+        found.forEach((f, k) => { h += `<div class="sl" data-p="f${k}" style="left:${250 + k * 80}px;top:10px"></div>`; f.length && (h += card(f[f.length - 1], 'f' + k, f.length - 1, 250 + k * 80, 10, 0)); });
+        tab.forEach((col, k) => { h += `<div class="sl" data-p="t${k}" style="left:${10 + k * 90}px;top:130px"></div>`; let y = 130; col.forEach((c, i) => { h += card(c, 't' + k, i, 10 + k * 90, y, sel && sel.p === 't' + k && i >= sel.i); y += c.up ? 22 : 8; }); }); $('.sol', b).innerHTML = h; };
+      const move = (s, to) => { const from = pile(s.p), cards = from.slice(s.i), tg = pile(to); if (!cards.length) return false;
+        if (to[0] === 't' && canTab(cards[0], tg)) tg.push(...cards); else if (to[0] === 'f' && cards.length === 1 && canFnd(cards[0], tg)) tg.push(cards[0]); else return false;
+        from.length = s.i; if (s.p[0] === 't' && from.length && !from[from.length - 1].up) from[from.length - 1].up = 1; return true; };
+      const check = () => { if (found.every(f => f.length === 13)) OS.dialog({ title: 'Solitaire', html: '🎉 Congratulations, you won!', buttons: [['New Game', deal]] }); };
+      b.innerHTML = '<div class="sol"></div>'; b.insertBefore(mbar({ Game: [['Deal', deal], '-', ['Exit', () => w.close()]], Help: [['How to play', () => OS.dialog({ title: 'Solitaire', html: 'Click a card, then click where to put it. Build columns down in alternating colours, foundations up by suit. Double-click a card to send it to a foundation.', w: 340 })]] }), b.firstChild);
+      b.onclick = e => { const c = e.target.closest('[data-p]'); if (!c) return; const p = c.dataset.p, i = c.dataset.i !== undefined ? +c.dataset.i : null;
+        if (p === 's') { if (stock.length) { const x = stock.pop(); x.up = 1; waste.push(x); } else { stock = waste.reverse(); stock.forEach(x => x.up = 0); waste = []; } sel = null; return draw(); }
+        if (sel) { if (sel.p === p && sel.i === i) { sel = null; return draw(); } if (move(sel, p)) { sel = null; draw(); return check(); } }
+        const P = pile(p); sel = (i !== null && P[i] && P[i].up && p[0] !== 'f' && (p !== 'w' || i === P.length - 1)) ? { p, i } : null; draw(); };
+      b.ondblclick = e => { const c = e.target.closest('[data-i]'); if (!c) return; const p = c.dataset.p; if (p[0] === 'f' || p === 's') return; const P = pile(p); for (let k = 0; k < 4; k++) if (move({ p, i: P.length - 1 }, 'f' + k)) { sel = null; draw(); return check(); } };
+      deal();
+    } },
+  taskmgr: { name: 'Windows Task Manager', icon: '📊', w: 420, h: 470, fixed: 1, single: 1, prog: 1,
+    render(b, w) {
+      let tab = 'app', sel = null, cpu = Array(60).fill(8); b.style.display = 'flex'; b.style.flexDirection = 'column';
+      const list = () => OS.wins.filter(x => x.id !== 'taskmgr');
+      const draw = () => { const L = list(); cpu.push(Math.min(100, 4 + L.length * 5 + Math.random() * 14)); cpu.shift(); const c = cpu[cpu.length - 1] | 0, mem = performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) + ' MB' : 'n/a';
+        b.innerHTML = `<div class="tabs"><span data-t="app" class="${tab === 'app' ? 'on' : ''}">Applications</span><span data-t="perf" class="${tab === 'perf' ? 'on' : ''}">Performance</span></div><div class="tpg" style="height:calc(100% - 100px)">` +
+          (tab === 'app' ? `<div class="lst" style="height:260px">${L.map((x, i) => `<div class="li tm${sel === x ? ' on' : ''}" data-w="${i}"><span>${x.app.icon} ${escH($('.tt', x.el).textContent)}</span><span>${x.min ? 'Minimized' : 'Running'}</span></div>`).join('') || '<div class="li">No applications running</div>'}</div><div style="text-align:right"><button class="xb" data-a="end">End Task</button> <button class="xb" data-a="sw">Switch To</button> <button class="xb" data-a="new">New Task…</button></div>`
+            : `<b>CPU Usage: ${c}%</b><canvas id="cg" width="370" height="110" style="background:#000;border:2px inset #888;display:block;margin:6px 0"></canvas><b>Memory:</b> ${mem} (browser)<br><b>CPU threads:</b> ${navigator.hardwareConcurrency || 1}`) +
+          `</div><div style="padding:4px 10px">Processes: ${L.length + 2} &nbsp; CPU Usage: ${c}%</div>`;
+        const g = $('#cg', b); if (g) { const x = g.getContext('2d'); x.strokeStyle = '#0a3'; x.lineWidth = 1; for (let i = 0; i < 6; i++) { x.beginPath(); x.moveTo(0, i * 22); x.lineTo(370, i * 22); x.stroke(); } x.strokeStyle = '#3f3'; x.beginPath(); cpu.forEach((v, i) => x[i ? 'lineTo' : 'moveTo'](i * 6.2, 110 - v * 1.1)); x.stroke(); } };
+      b.onclick = e => { const t = e.target.closest('[data-t]'), r = e.target.closest('[data-w]'), a = e.target.closest('[data-a]'); if (t) { tab = t.dataset.t; } else if (r) sel = list()[+r.dataset.w];
+        else if (a && a.dataset.a === 'end' && sel) { OS.close(sel); sel = null; } else if (a && a.dataset.a === 'sw' && sel) { OS.restore(sel); OS.focus(sel); } else if (a && a.dataset.a === 'new') OS.run(); draw(); };
+      const iv = setInterval(() => b.isConnected ? draw() : clearInterval(iv), 1000); w.api.close = () => clearInterval(iv); draw();
+    } },
+  wordpad: { name: 'Document - WordPad', icon: '📃', w: 640, h: 460, prog: 1,
+    render(b, w, arg) {
+      let id = null, name = 'Document.wpd', folder = 'docs'; b.style.display = 'flex'; b.style.flexDirection = 'column'; const title = () => w.setTitle(name + ' - WordPad');
+      const clean = h => { const d = new DOMParser().parseFromString(h, 'text/html'); d.querySelectorAll('script,iframe,object,embed,link,style,meta').forEach(n => n.remove()); d.querySelectorAll('*').forEach(n => [...n.attributes].forEach(a => { if (/^on/i.test(a.name) || /javascript:/i.test(a.value)) n.removeAttribute(a.name); })); return d.body.innerHTML; };
+      const ed = document.createElement('div'); ed.className = 'wp'; ed.contentEditable = 'true'; const tb = document.createElement('div'); tb.className = 'wtb';
+      tb.innerHTML = '<select data-f><option>Times New Roman</option><option>Arial</option><option>Courier New</option><option>Tahoma</option></select><select data-s><option value="2">10</option><option value="3" selected>12</option><option value="4">14</option><option value="5">18</option><option value="6">24</option><option value="7">36</option></select><b data-c="bold">B</b><i data-c="italic">I</i><u data-c="underline">U</u><span data-c="justifyLeft">⇤</span><span data-c="justifyCenter">↔</span><span data-c="justifyRight">⇥</span><span data-c="insertUnorderedList">• List</span>';
+      tb.onmousedown = e => { if (!e.target.closest('select')) e.preventDefault(); }; tb.onclick = e => { const c = e.target.closest('[data-c]'); if (c) { document.execCommand(c.dataset.c); ed.focus(); } };
+      tb.onchange = e => { if (e.target.dataset.f) document.execCommand('fontName', false, e.target.value); else document.execCommand('fontSize', false, e.target.value); ed.focus(); };
+      const load = async fid => { const f = await FS.get(fid); if (!f) return; const t = await f.blob.text(); if (/\.wpd$/i.test(f.name)) ed.innerHTML = clean(t); else ed.textContent = t; id = f.id; name = f.name; folder = f.folder; title(); };
+      const save = async n => { name = n; if (!/\.wpd$/i.test(name)) name = name.replace(/\.\w+$/, '') + '.wpd'; const r = await FS.save(name, 'text/html', new Blob([ed.innerHTML], { type: 'text/html' }), folder, id); id = r.id; title(); OS.balloon('WordPad', `Saved to ${LOC[folder]}`); };
+      b.appendChild(mbar({ File: [['New', () => { ed.innerHTML = ''; id = null; name = 'Document.wpd'; title(); }], ['Open…', () => pickFiles('.wpd,.txt,.html', async fs => { const f = fs[0], t = await f.text(); if (/\.wpd$|\.html?$/i.test(f.name)) ed.innerHTML = clean(t); else ed.textContent = t; name = f.name; id = null; title(); })], ['Save', () => id ? save(name) : saveAsDlg(name, save)], ['Save As…', () => saveAsDlg(name, n => { id = null; save(n); })], '-', ['Exit', () => w.close()]] })); b.appendChild(tb); b.appendChild(ed); ed.style.flex = '1'; title(); arg && load(arg); w.api.arg = load;
+    } },
+  sndrec: { name: 'Sound Recorder', icon: '🎙️', w: 320, h: 170, fixed: 1, single: 1, prog: 1,
+    render(b, w) {
+      let rec = null, chunks = [], t0 = 0, iv; b.innerHTML = '<div style="padding:14px;text-align:center"><div id="st" style="font-size:20px;margin:8px;font-family:monospace">0.00 sec</div><button class="xb" id="rc">⏺ Record</button> <div id="msg" style="margin-top:10px;color:#444">Recordings are saved to My Music.</div></div>';
+      const rcB = $('#rc', b); rcB.onclick = async () => { if (rec) { rec.stop(); return; } try { const s = await navigator.mediaDevices.getUserMedia({ audio: true }); chunks = []; rec = new MediaRecorder(s); rec.ondataavailable = e => chunks.push(e.data);
+        rec.onstop = async () => { s.getTracks().forEach(k => k.stop()); clearInterval(iv); const n = (await FS.list('music')).filter(f => /^Sound/.test(f.name)).length + 1, r = await FS.save(`Sound ${n}.webm`, 'audio/webm', new Blob(chunks, { type: 'audio/webm' }), 'music'); rec = null; rcB.textContent = '⏺ Record'; $('#msg', b).textContent = `Saved as ${r.name} in My Music.`; };
+        rec.start(); t0 = Date.now(); rcB.textContent = '⏹ Stop'; iv = setInterval(() => { $('#st', b) && ($('#st', b).textContent = ((Date.now() - t0) / 1e3).toFixed(2) + ' sec'); }, 100); } catch (e) { OS.balloon('Sound Recorder', 'Microphone not available — allow access in the browser.'); } };
+      w.api.close = () => { rec && rec.state !== 'inactive' && rec.stop(); clearInterval(iv); };
+    } }
+});
