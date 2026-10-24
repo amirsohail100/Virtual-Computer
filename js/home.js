@@ -14,7 +14,7 @@ const SYSTEMS = [
   { id: 'ubuntu', name: 'Ubuntu Linux', ready: false,
     desc: 'GNOME-style desktop with a side dock, Activities, Files, Terminal and Software.',
     preview: '<div class="mon ub-p"><div class="utop"></div><div class="udock"><i></i><i></i><i></i><i></i></div><div class="uwin"></div></div>' },
-  { id: 'kali', name: 'Kali Linux', ready: false,
+  { id: 'kali', name: 'Kali Linux', ready: true, path: 'os/linux/kali/index.html',
     desc: 'Dark desktop with a powerful terminal and a menu of tools for learning.',
     preview: '<div class="mon kl-p"><div class="kbar"></div><div class="kterm"><i>┌──(kali@kali)-[~]</i><i>└─$ ▌</i></div></div>' },
   { id: 'android', name: 'Android', ready: true, path: 'os/android/index.html',
