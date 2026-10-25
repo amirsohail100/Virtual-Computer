@@ -11,7 +11,7 @@ const SYSTEMS = [
   { id: 'mac', name: 'macOS', ready: true, path: 'os/mac/index.html',
     desc: 'Menu bar, Dock with magnification, Finder, Launchpad, Spotlight, Control Center and apps.',
     preview: '<div class="mon mac-p"><div class="mbar"></div><div class="dock"><i></i><i></i><i></i><i></i><i></i></div></div>' },
-  { id: 'ubuntu', name: 'Ubuntu Linux', ready: true,
+  { id: 'ubuntu', name: 'Ubuntu Linux', ready: true, path: 'os/linux/ubuntu/index.html',
     desc: 'GNOME-style desktop with a side dock, Activities, Files, Terminal and Software.',
     preview: '<div class="mon ub-p"><div class="utop"></div><div class="udock"><i></i><i></i><i></i><i></i></div><div class="uwin"></div></div>' },
   { id: 'kali', name: 'Kali Linux', ready: true, path: 'os/linux/kali/index.html',
