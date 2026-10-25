@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ubuntu — Virtual Computer</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="screen" class="ac-orange">
+
+  <!-- Boot (Plymouth) + login (GDM) -->
+  <div id="boot"><div class="pl"><b>ubuntu</b><div class="dots"><i></i><i></i><i></i><i></i><i></i></div></div><small>Ubuntu 24.04 LTS — virtual replica</small></div>
+  <div id="login" class="hidden">
+    <div class="ltop"><span id="lgClock"></span><button id="lgPower" title="Power Off / Switch OS">⏻</button></div>
+    <div class="lbox"><div class="lav">U</div><div class="lname">Ubuntu</div>
+      <input id="pw" type="password" placeholder="Password" autocomplete="off"><button id="lgGo">Sign In</button>
+      <small id="lgMsg">Password: ubuntu</small></div>
+  </div>
+
+  <!-- Desktop -->
+  <div id="desktop"><div id="icons"></div></div>
+  <div id="windows"></div>
+
+  <!-- GNOME top bar -->
+  <div id="topbar">
+    <button id="actBtn">Activities</button><span id="appName"></span>
+    <button id="clockBtn"></button>
+    <button id="sysBtn"><span id="trNet">🖧</span><span id="trVol">🔊</span><span id="trBat">🔌</span><span>⏻</span></button>
+  </div>
+
+  <!-- Ubuntu Dock -->
+  <div id="dock"><div id="dockApps"></div><button id="showApps" title="Show Applications"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></button></div>
+
+  <!-- Activities overview -->
+  <div id="overview" class="hidden">
+    <input id="osearch" placeholder="Type to search…" autocomplete="off">
+    <div id="ovwins"></div><div id="ovapps" class="hidden"></div>
+  </div>
+
+  <div id="popup" class="hidden"></div>
+  <div id="notify"></div>
+  <div id="ctx" class="hidden"></div>
+  <div id="modal" class="hidden"></div>
+  <div id="dim"></div><div id="warm"></div>
+  <div id="off" class="hidden"><p id="offMsg"></p><button id="powerOn">⏻ Power on</button></div>
+</div>
+<script src="js/apps.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
