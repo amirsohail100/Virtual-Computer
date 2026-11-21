@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nokia 3310 – Web OS</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Left controls (same as Android / iOS) -->
+  <aside class="side">
+    <a class="side-btn" id="btnSwitch" href="../../index.html" title="Switch OS">
+      <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg><span>Switch OS</span>
+    </a>
+    <button class="side-btn" id="btnFull" title="Full screen">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Full screen</span>
+    </button>
+    <button class="side-btn" id="btnPower" title="Power">
+      <svg viewBox="0 0 24 24"><path d="M12 3v9M6.3 6.5a8 8 0 1 0 11.4 0"/></svg><span>Power</span>
+    </button>
+  </aside>
+
+  <main class="stage">
+    <div class="phone" id="phone">
+      <button class="pwr" id="pwrKnob" aria-label="Power"></button>
+      <div class="speaker"></div>
+      <div class="brand">NOKIA</div>
+
+      <div class="bezel">
+        <div class="lcd off" id="lcd">
+          <div class="screen">
+            <div class="status" id="status"></div>
+            <div class="content" id="content"></div>
+            <div class="soft" id="soft"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navi / C / Up / Down -->
+      <div class="navrow">
+        <button class="key ckey" data-key="c" aria-label="C"><b>C</b></button>
+        <button class="key navi" data-key="ok" aria-label="Navi key"><i></i></button>
+        <div class="ud">
+          <button class="key small" data-key="up" aria-label="Up">&#9650;</button>
+          <button class="key small" data-key="down" aria-label="Down">&#9660;</button>
+        </div>
+      </div>
+
+      <!-- Keypad -->
+      <div class="keypad">
+        <button class="key" data-key="1"><b>1</b><small>&nbsp;</small></button>
+        <button class="key" data-key="2"><b>2</b><small>abc</small></button>
+        <button class="key" data-key="3"><b>3</b><small>def</small></button>
+        <button class="key" data-key="4"><b>4</b><small>ghi</small></button>
+        <button class="key" data-key="5"><b>5</b><small>jkl</small></button>
+        <button class="key" data-key="6"><b>6</b><small>mno</small></button>
+        <button class="key" data-key="7"><b>7</b><small>pqrs</small></button>
+        <button class="key" data-key="8"><b>8</b><small>tuv</small></button>
+        <button class="key" data-key="9"><b>9</b><small>wxyz</small></button>
+        <button class="key" data-key="*"><b>*</b><small>+</small></button>
+        <button class="key" data-key="0"><b>0</b><small>&#9251;</small></button>
+        <button class="key" data-key="#"><b>#</b><small>Aa</small></button>
+      </div>
+    </div>
+  </main>
+
+  <div class="hint">Enter: Navi &middot; Backspace/Esc: C (hold = home) &middot; &uarr;&darr;: Scroll &middot; 0-9 * #: Keypad &middot; P: Power &middot; F: Full screen</div>
+
+  <script src="js/apps.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
