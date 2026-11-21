@@ -1,0 +1,167 @@
+/* Nokia 3310 – Web OS styles */
+:root {
+  --ink: #101c0c;
+  --bg: #8da97f;
+  --bg-lit: #a9d68b;
+  --body1: #3a6cb4;
+  --body2: #1f4585;
+  --key1: #f1f4f9;
+  --key2: #aab6c6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  background: radial-gradient(ellipse at 50% 30%, #14214a 0%, #080d1f 60%, #04060f 100%), url(../assets/bg.svg);
+  background-blend-mode: normal;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #e8ecf6;
+  overflow: hidden;
+  user-select: none;
+}
+body::before { content: ""; position: fixed; inset: 0; background: url(../assets/bg.svg); pointer-events: none; }
+
+/* ---------- side controls ---------- */
+.side { position: fixed; left: 14px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 5; }
+.side-btn {
+  width: 66px; height: 62px; border-radius: 14px; cursor: pointer; text-decoration: none;
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); color: #e8ecf6;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  font: 11px "Segoe UI", system-ui, sans-serif; backdrop-filter: blur(6px); transition: background .15s;
+}
+.side-btn:hover { background: rgba(255, 255, 255, .13); }
+.side-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.stage { height: 100%; display: flex; align-items: center; justify-content: center; }
+.hint { position: fixed; left: 0; right: 0; bottom: 6px; text-align: center; font-size: 12px; color: rgba(232, 236, 246, .55); pointer-events: none; }
+
+/* ---------- phone body ---------- */
+.phone {
+  --h: min(92vh, 860px);
+  position: relative; height: var(--h); width: calc(var(--h) * .43);
+  font-size: calc(var(--h) / 50);
+  border-radius: 4.6em 4.6em 5.4em 5.4em;
+  background: linear-gradient(160deg, var(--body1), var(--body2) 70%);
+  padding: 3em 2.6em 3em;
+  display: flex; flex-direction: column; align-items: center;
+  box-shadow: inset 0 .2em .5em rgba(255, 255, 255, .35), inset 0 -.4em 1em rgba(0, 0, 0, .35), 0 2em 4em rgba(0, 0, 0, .6);
+}
+.phone.shake { animation: shake .12s linear 5; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-.4em) rotate(-.4deg); } 75% { transform: translateX(.4em) rotate(.4deg); } }
+.pwr { position: absolute; top: -.7em; right: 6.5em; width: 3.2em; height: .9em; border: 0; border-radius: .5em .5em 0 0; background: #13244f; cursor: pointer; }
+.speaker { width: 36%; height: 1em; border-radius: .6em; background: #10264d; box-shadow: inset 0 .15em .3em #000; margin-bottom: 1em; }
+.brand { font: 900 2.1em/1 "Arial Black", Arial, sans-serif; letter-spacing: .18em; color: #dbe6f6; text-shadow: 0 .06em 0 rgba(0, 0, 0, .35); margin-bottom: .9em; }
+
+/* ---------- LCD ---------- */
+.bezel { width: 100%; padding: .9em; border-radius: 1.8em; background: linear-gradient(#1b2230, #0d1118); box-shadow: inset 0 .2em .6em #000, 0 .1em 0 rgba(255, 255, 255, .15); }
+.lcd {
+  --px: rgba(14, 28, 10, .8);
+  container-type: size; position: relative; width: 100%; aspect-ratio: 84 / 48;
+  background: var(--bg); color: var(--px); border-radius: .5em; overflow: hidden;
+  font-family: "Lucida Console", "Courier New", monospace; font-weight: 700;
+  box-shadow: inset 0 0 1.2em rgba(0, 0, 0, .35);
+}
+.lcd.lit { background: var(--bg-lit); box-shadow: inset 0 0 1.2em rgba(0, 0, 0, .25), 0 0 2.4em rgba(150, 255, 120, .28); }
+.lcd.off { background: #5e6d57; box-shadow: inset 0 0 1.2em rgba(0, 0, 0, .5); }
+.lcd.off .screen { opacity: 0; }
+.lcd::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(0, 0, 0, .09) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, .09) 1px, transparent 1px);
+  background-size: calc(100% / 84) calc(100% / 48);
+}
+.screen { position: absolute; inset: 0; display: grid; grid-template-rows: 16.66cqh 1fr 16.66cqh; font-size: 13.5cqh; line-height: 16.66cqh; }
+.lcd.full .screen { grid-template-rows: 1fr; }
+.lcd.full .status, .lcd.full .soft { display: none; }
+.content { position: relative; overflow: hidden; }
+
+.status { display: flex; align-items: center; justify-content: space-between; gap: 2cqh; padding: 0 3cqh; border-bottom: .7cqh solid var(--px); white-space: nowrap; }
+.status .title { overflow: hidden; text-overflow: ellipsis; }
+.status .mode { font-size: 11cqh; }
+.soft { display: flex; align-items: center; justify-content: center; }
+.soft span { padding: 0 6cqh; height: 13.5cqh; line-height: 11.5cqh; border: .8cqh solid var(--px); border-radius: 3cqh; }
+
+/* status icons */
+.sig { display: inline-flex; align-items: flex-end; gap: .7cqh; height: 10cqh; }
+.sig b { width: 1.9cqh; background: var(--px); }
+.sig b:nth-child(1) { height: 25%; } .sig b:nth-child(2) { height: 50%; } .sig b:nth-child(3) { height: 75%; } .sig b:nth-child(4) { height: 100%; }
+.bat { display: inline-flex; gap: .5cqh; width: 13cqh; height: 8.5cqh; padding: .6cqh; border: .8cqh solid var(--px); }
+.bat b { flex: 1; background: var(--px); }
+.env { width: 10cqh; height: 7cqh; border: .8cqh solid var(--px); animation: blink 1s steps(2) infinite;
+  background: linear-gradient(to bottom right, transparent 45%, var(--px) 47% 53%, transparent 55%), linear-gradient(to bottom left, transparent 45%, var(--px) 47% 53%, transparent 55%); }
+@keyframes blink { 50% { opacity: .15; } }
+
+/* lists */
+.list { position: relative; height: 100%; }
+.row { height: 16.66cqh; display: flex; align-items: center; padding: 0 3cqh; white-space: nowrap; overflow: hidden; }
+.row .n { margin-right: 2cqh; }
+.row .t { overflow: hidden; text-overflow: ellipsis; }
+.row.sel { background: var(--px); color: var(--bg); }
+.lcd.lit .row.sel { color: var(--bg-lit); }
+.sb { position: absolute; right: .8cqh; top: 1cqh; bottom: 1cqh; width: 1.4cqh; border-left: .3cqh solid var(--px); }
+.sb i { position: absolute; left: 0; width: 100%; background: var(--px); }
+
+/* text / notes */
+.wrap { height: 100%; overflow: hidden; padding: 0 3cqh; white-space: normal; word-break: break-word; font-size: 12.5cqh; line-height: 15cqh; }
+.wrap.c { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 13.5cqh; line-height: 16cqh; }
+.wrap small { font-size: 10cqh; }
+
+/* home */
+.home { height: 100%; display: flex; flex-direction: column; text-align: center; }
+.home .op { height: 16.66cqh; font-size: 11cqh; }
+.home .clock { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 30cqh; letter-spacing: -.5cqh; line-height: 1; }
+.home .note { height: 16.66cqh; font-size: 11cqh; }
+.dial { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3cqh; text-align: right; }
+.dial .nm { font-size: 11cqh; overflow: hidden; height: 16.66cqh; }
+.dial .num { font-size: 19cqh; line-height: 33cqh; white-space: nowrap; }
+
+/* editor */
+.ed { height: 100%; display: flex; align-items: flex-end; padding: 0 3cqh 1cqh; }
+.ed .txt { width: 100%; max-height: 100%; overflow: hidden; word-break: break-all; font-size: 13cqh; line-height: 16cqh; }
+.cur { animation: blink 1s steps(2) infinite; }
+
+/* call, calc, slider, stopwatch */
+.call, .calc, .sw { height: 100%; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+.call .nm { height: 16.66cqh; } .call .num { font-size: 16cqh; } .call .st { font-size: 14cqh; }
+.calc { justify-content: flex-end; text-align: right; padding: 0 3cqh; }
+.calc .l1 { height: 16.66cqh; font-size: 11cqh; } .calc .l2 { font-size: 24cqh; line-height: 33cqh; white-space: nowrap; }
+.sw .t { font-size: 22cqh; line-height: 33cqh; }
+.slider { height: 100%; display: flex; align-items: center; justify-content: center; }
+.bar { display: flex; gap: 2cqh; align-items: flex-end; height: 26cqh; }
+.bar b { width: 6cqh; border: .8cqh solid var(--px); height: 40%; }
+.bar b:nth-child(2) { height: 55%; } .bar b:nth-child(3) { height: 70%; } .bar b:nth-child(4) { height: 85%; } .bar b:nth-child(5) { height: 100%; }
+.bar b.on { background: var(--px); }
+
+/* boot */
+.boot { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2cqh; }
+.boot img { height: 30cqh; image-rendering: pixelated; }
+.boot b { font-size: 24cqh; line-height: 26cqh; letter-spacing: 2cqh; font-family: "Arial Black", Arial, sans-serif; }
+.boot small { font-size: 10cqh; line-height: 11cqh; }
+
+/* games */
+.gc { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+
+/* ---------- keys ---------- */
+.navrow { width: 100%; height: 6.6em; margin-top: 1.1em; display: grid; grid-template-columns: 1fr 1.7fr 1fr; gap: 1em; align-items: center; }
+.ud { height: 100%; display: grid; grid-template-rows: 1fr 1fr; gap: .5em; }
+.keypad { width: 100%; flex: 1; margin-top: 1em; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); gap: .8em .9em; }
+.key {
+  border: 0; border-radius: 1.7em; cursor: pointer; color: #1d2635; font: 700 1.5em/1 "Segoe UI", sans-serif;
+  background: linear-gradient(var(--key1), var(--key2));
+  box-shadow: 0 .28em 0 #66758b, 0 .55em .9em rgba(0, 0, 0, .35);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .12em;
+  transition: transform .04s, box-shadow .04s;
+}
+.key b { font-size: 1.3em; }
+.key small { font-size: .5em; font-weight: 600; letter-spacing: .12em; opacity: .65; text-transform: uppercase; }
+.key.down, .key:active { transform: translateY(.22em); box-shadow: 0 .06em 0 #66758b, 0 .2em .4em rgba(0, 0, 0, .35); }
+.key.small { font-size: .95em; border-radius: 1em; }
+.ckey { height: 70%; }
+.navi { height: 100%; border-radius: 50%; background: radial-gradient(ellipse at 50% 25%, #6f9bdc, #2a5aa6 70%); box-shadow: 0 .3em 0 #13306a, 0 .6em 1em rgba(0, 0, 0, .4); }
+.navi i { width: 30%; height: .5em; border-radius: .3em; background: rgba(255, 255, 255, .85); }
+.navi.down, .navi:active { box-shadow: 0 .06em 0 #13306a; }
+
+@media (max-width: 760px) {
+  .side { top: auto; bottom: 8px; left: 0; right: 0; transform: none; flex-direction: row; justify-content: center; }
+  .side-btn { width: 60px; height: 46px; gap: 2px; font-size: 10px; } .side-btn svg { width: 16px; height: 16px; }
+  .hint { display: none; }
+  .phone { --h: min(82vh, 860px); }
+}
