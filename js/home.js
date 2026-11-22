@@ -23,7 +23,7 @@ const SYSTEMS = [
   { id: 'iphone', name: 'iPhone', ready: true, path: 'os/ios/index.html',
     desc: 'Home screen, App Library, Control Center and lock screen.',
     preview: '<div class="ph ios-p"><div class="island"></div><div class="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="home"></div></div>' },
-  { id: 'nokia', name: 'Nokia 3310', ready: false,
+  { id: 'nokia', name: 'Nokia 3310', ready: true, path: 'os/nokia/index.html',
     desc: 'The classic keypad phone with working physical buttons, menus and the famous Snake game.',
     preview: '<div class="nk"><div class="nk-spk"></div><div class="nk-scr"><b>NOKIA</b><i>Menu</i><u>Snake II</u></div><div class="nk-nav"><span></span><em></em></div><div class="nk-keys"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>' },
   { id: 'quadra', name: 'Quadra OS', ready: false,
